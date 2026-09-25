@@ -1,0 +1,3112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Point Tracker System</title>
+
+    <style>
+        :root {
+            --bg-color: #0d0e15;
+            --panel-bg: #161925;
+            --accent-cyan: #00f0ff;
+            --accent-pink: #ff007f;
+            --accent-green: #39ff14;
+            --text-color: #e2e8f0;
+            --border-color: #2a2f45;
+            --card-min-width: 280px;
+            --student-pill-padding: 7px;
+            --student-font-size: 0.88rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 105px;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        /* =========================================================
+           CLASSROOM TOOLS NAVIGATION
+           ========================================================= */
+
+        .classroom-tools-nav {
+            position: fixed;
+            left: 50%;
+            bottom: max(10px, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+
+            z-index: 99999;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+
+            width: calc(100% - 24px);
+            max-width: 560px;
+
+            padding: 7px;
+
+            background: rgba(22, 25, 37, 0.96);
+            border: 1px solid #30364f;
+            border-radius: 20px;
+
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.45),
+                0 2px 8px rgba(0, 0, 0, 0.3);
+
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .classroom-tools-nav a {
+            flex: 1;
+            min-width: 0;
+            min-height: 54px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            gap: 3px;
+
+            padding: 6px 8px;
+
+            border-radius: 15px;
+
+            text-decoration: none;
+
+            color: #8991a8;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition:
+                background 0.15s ease,
+                color 0.15s ease,
+                transform 0.15s ease;
+
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .classroom-tools-nav a:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+        }
+
+        .classroom-tools-nav a:active {
+            transform: scale(0.94);
+        }
+
+        .classroom-tools-nav .nav-icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .classroom-tools-nav .nav-label {
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        /* Current app */
+        .classroom-tools-nav a.active.points {
+            background: rgba(255, 0, 127, 0.16);
+            color: #ff4d9d;
+            box-shadow: inset 0 0 0 1px rgba(255, 0, 127, 0.25);
+        }
+
+        @media (max-width: 500px) {
+            .classroom-tools-nav {
+                width: calc(100% - 14px);
+                bottom: max(7px, env(safe-area-inset-bottom));
+                padding: 5px;
+                border-radius: 18px;
+            }
+
+            .classroom-tools-nav a {
+                min-height: 52px;
+                padding: 5px 3px;
+                font-size: 11px;
+            }
+
+            .classroom-tools-nav .nav-icon {
+                font-size: 21px;
+            }
+        }
+
+        /* Editable Header styling */
+        .header-editable {
+            background: transparent;
+            border: 1px dashed transparent;
+            color: var(--accent-cyan);
+            font-size: 2rem;
+            font-weight: bold;
+            width: 100%;
+            padding: 4px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        .header-editable:hover,
+        .header-editable:focus {
+            border-color: var(--accent-cyan);
+            background: rgba(255,255,255,0.02);
+            outline: none;
+        }
+
+        /* Layout Structure */
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 260px;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Dynamic Grid System */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width), 1fr));
+            gap: 25px;
+        }
+
+        /* Group Dashboard Card */
+        .group-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .group-card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .group-card.has-points-today {
+            background: #0f241b;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 18px rgba(57, 255, 20, 0.15);
+        }
+
+        .group-card.has-points-today:hover {
+            border-color: #76ff03;
+            box-shadow: 0 0 22px rgba(57, 255, 20, 0.3);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .group-card.has-points-today .group-header {
+            border-bottom-color: rgba(57, 255, 20, 0.2);
+        }
+
+        .group-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .group-score {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--accent-cyan);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+            border: 1px solid var(--accent-cyan);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .group-card.has-points-today .group-score {
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .student-list {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 60px;
+        }
+
+        .student-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: var(--student-pill-padding) 12px;
+            border-radius: 20px;
+            font-size: var(--student-font-size);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s, border-color 0.2s;
+            line-height: 1.2;
+        }
+
+        .student-pill:hover {
+            background: rgba(255, 0, 127, 0.15);
+            border-color: var(--accent-pink);
+        }
+
+        .hidden-metrics {
+            display: none !important;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .side-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .layout-control-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            font-size: 0.85rem;
+            color: #a0aec0;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .layout-control-container input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-input {
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .color-picker-input {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 45px;
+            height: 28px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #222533;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            text-align: center;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f0ff, #0072ff);
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff007f, #7900ff);
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.5);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(5, 5, 10, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 25px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+        }
+
+        .points-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-point {
+            font-size: 1.5rem;
+            padding: 15px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-point:hover {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: #0d0e15;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        .batch-assign-panel {
+            background: #111422;
+            border: 1px solid #ff007f33;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .batch-select {
+            background: #0d0e15;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 6px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .drag-manage-container {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .unassigned-pool {
+            background: #0d0e15;
+            border: 1px dashed var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            min-height: 200px;
+        }
+
+        .settings-groups-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .settings-group-box {
+            background: #1f2336;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            min-height: 120px;
+        }
+
+        .draggable-student {
+            background: var(--accent-pink);
+            color: white;
+            padding: 6px 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: move;
+            font-size: 0.85rem;
+        }
+
+        .log-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .btn-delete {
+            background: transparent;
+            color: var(--accent-pink);
+            border: 1px solid var(--accent-pink);
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-delete:hover {
+            background: var(--accent-pink);
+            color: #000;
+        }
+
+        .analytics-panel {
+            background: #0d0e15;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .date-picker-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .date-picker-row input[type="date"] {
+            background: #161925;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 800px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                order: 2;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .drag-manage-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header-editable {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+    <!-- PWA files inside ClassPointSystem folder -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d0e15">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .catch(err => console.warn('Offline cache registration failed:', err));
+            });
+        }
+    </script>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <div class="main-content">
+
+            <input
+                type="text"
+                id="mainHeaderTitle"
+                class="header-editable"
+                value="GROUP POINT SYSTEM"
+                onchange="saveHeaderLabels()"
+            >
+
+            <div class="groups-grid" id="groupsDisplayGrid"></div>
+
+        </div>
+
+        <div class="sidebar">
+
+            <div class="side-panel">
+                <h3 style="margin-top: 0; color: var(--accent-cyan); font-size: 1.1rem;">
+                    DAILY SUMMARY
+                </h3>
+
+                <div id="dailySummaryContainer"></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="openModal('logModal')">
+                📋 VIEW POINTS LOG
+            </button>
+
+            <button
+                class="btn btn-secondary"
+                onclick="openModal('settingsModal'); initSettingsView();"
+            >
+                ⚙️ SYSTEM SETTINGS
+            </button>
+
+            <div class="side-panel layout-control-container">
+
+                <h3 style="margin: 0; color: var(--accent-cyan); font-size: 1rem;">
+                    📏 DISPLAY ADJUSTMENTS
+                </h3>
+
+                <div class="control-item">
+                    <label for="widthSlider" style="font-weight: bold;">
+                        Group Card Width
+                    </label>
+
+                    <input
+                        type="range"
+                        id="widthSlider"
+                        min="200"
+                        max="450"
+                        value="280"
+                        oninput="adjustCardWidth(this.value)"
+                    >
+
+                    <div style="display:flex; justify-content: space-between; font-size: 0.7rem; color:#666;">
+                        <span>Thinner</span>
+                        <span>Wider</span>
+                    </div>
+                </div>
+
+                <div class="control-item">
+
+                    <label for="heightSlider" style="font-weight: bold;">
+                        Student Name Height
+                    </label>
+
+                    <input
+                        type="range"
+                        id="heightSlider"
+                        min="1"
+                        max="3"
+                        value="2"
+                        step="1"
+                        oninput="adjustStudentHeight(this.value)"
+                    >
+
+                    <div style="display:flex; justify-content: space-between; font-size: 0.7rem; color:#666;">
+                        <span>Compact</span>
+                        <span>Normal</span>
+                        <span>Spacious</span>
+                    </div>
+
+                </div>
+
+                <div
+                    class="control-item"
+                    style="border-top: 1px solid var(--border-color); padding-top: 10px;"
+                >
+                    <label class="toggle-container">
+                        <span style="font-weight: bold;">
+                            Show Student Points
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            id="showIndividualMetricsToggle"
+                            class="toggle-input"
+                            checked
+                            onchange="toggleIndividualMetrics(this.checked)"
+                        >
+                    </label>
+                </div>
+
+                <div
+                    class="control-item"
+                    style="border-top: 1px solid var(--border-color); padding-top: 10px;"
+                >
+                    <div class="color-picker-wrapper">
+
+                        <label for="bgColorPicker" style="font-weight: bold;">
+                            Background Color
+                        </label>
+
+                        <input
+                            type="color"
+                            id="bgColorPicker"
+                            class="color-picker-input"
+                            value="#0d0e15"
+                            oninput="changeBackgroundColor(this.value)"
+                        >
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- POINTS MODAL -->
+
+    <div id="pointsModal" class="modal-overlay">
+
+        <div
+            class="modal-content"
+            style="max-width: 400px; text-align: center;"
+        >
+
+            <h2 id="pointsModalTitle" style="margin-top:0;">
+                ADD POINTS
+            </h2>
+
+            <p
+                id="pointsModalSubtitle"
+                style="color: #888; margin-bottom: 20px;"
+            ></p>
+
+            <div class="points-options">
+
+                <button
+                    class="btn-point"
+                    onclick="submitPoints(1)"
+                >
+                    +1
+                </button>
+
+                <button
+                    class="btn-point"
+                    onclick="submitPoints(2)"
+                >
+                    +2
+                </button>
+
+                <button
+                    class="btn-point"
+                    onclick="submitPoints(3)"
+                >
+                    +3
+                </button>
+
+            </div>
+
+            <button
+                class="btn"
+                style="margin-top: 25px; background: transparent;"
+                onclick="closeModal('pointsModal')"
+            >
+                CANCEL
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- SETTINGS MODAL -->
+
+    <div id="settingsModal" class="modal-overlay">
+
+        <div
+            class="modal-content"
+            style="max-width: 850px;"
+        >
+
+            <h2 style="margin-top:0;">
+                SYSTEM SETTINGS
+            </h2>
+
+            <hr
+                style="border-color: var(--border-color); margin-bottom: 20px;"
+            >
+
+            <div class="settings-grid">
+
+                <div>
+
+                    <h3 style="font-size: 1rem;">
+                        1. EDIT GROUPS
+                    </h3>
+
+                    <p style="font-size: 0.8rem; color:#888;">
+                        Enter group names (one name per line)
+                    </p>
+
+                    <textarea
+                        id="settingsGroupsInput"
+                        placeholder="Group 1&#10;Group 2"
+                    ></textarea>
+
+                </div>
+
+                <div>
+
+                    <h3 style="font-size: 1rem;">
+                        2. EDIT STUDENTS ROSTER
+                    </h3>
+
+                    <p style="font-size: 0.8rem; color:#888;">
+                        Enter student names (one name per line)
+                    </p>
+
+                    <textarea
+                        id="settingsStudentsInput"
+                        placeholder="John Doe&#10;Mary Jane"
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+            <button
+                class="btn btn-primary"
+                style="margin-top: 10px;"
+                onclick="saveRosters()"
+            >
+                SAVE ROSTERS & UPDATES
+            </button>
+
+            <hr
+                style="border-color: var(--border-color); margin: 25px 0;"
+            >
+
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">
+                3. ASSIGN STUDENTS TO GROUPS
+            </h3>
+
+            <p style="font-size: 0.8rem; color:#888; margin: 0 0 10px 0;">
+                Drag and drop students between boxes to organize or change groups manually.
+            </p>
+
+            <div class="drag-manage-container">
+
+                <div>
+
+                    <h4
+                        style="margin: 0 0 5px 0; color: var(--accent-pink); font-size: 0.9rem;"
+                    >
+                        UNASSIGNED
+                    </h4>
+
+                    <div
+                        class="unassigned-pool"
+                        id="poolUnassigned"
+                        ondragover="allowDrop(event)"
+                        ondrop="handleDrop(event, '')"
+                    ></div>
+
+                </div>
+
+                <div>
+
+                    <h4
+                        style="margin: 0 0 5px 0; color: var(--accent-cyan); font-size: 0.9rem;"
+                    >
+                        ACTIVE GROUPS
+                    </h4>
+
+                    <div
+                        class="settings-groups-container"
+                        id="settingsGroupsContainer"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <div class="batch-assign-panel">
+
+                <h3
+                    style="font-size: 1rem; margin: 0 0 5px 0; color: var(--accent-pink);"
+                >
+                    3b. BATCH ASSIGN NAMES DIRECTLY TO A GROUP (NO DRAG)
+                </h3>
+
+                <p
+                    style="font-size: 0.8rem; color:#aaa; margin: 0 0 10px 0;"
+                >
+                    Select a group, type/paste a list of names below (one per line),
+                    and click assign to place them instantly.
+                </p>
+
+                <select
+                    id="batchGroupSelect"
+                    class="batch-select"
+                ></select>
+
+                <textarea
+                    id="batchNamesInput"
+                    style="height: 80px;"
+                    placeholder="Name One&#10;Name Two&#10;Name Three"
+                ></textarea>
+
+                <button
+                    class="btn"
+                    style="background: var(--accent-pink); color: #000; border: none; margin-top: 8px; padding: 8px 12px; font-size: 0.9rem;"
+                    onclick="executeBatchAssignment()"
+                >
+                    BATCH ASSIGN TO GROUP
+                </button>
+
+            </div>
+
+
+            <hr
+                style="border-color: var(--border-color); margin: 25px 0;"
+            >
+
+
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">
+                4. COMPARE CONTRIBUTION PERIODS
+            </h3>
+
+            <p
+                style="font-size: 0.8rem; color:#888; margin: 0 0 15px 0;"
+            >
+                Select two distinct date ranges using the calendar popups below
+                to view comparative performance tracking analytics.
+            </p>
+
+
+            <div class="analytics-panel">
+
+                <div class="date-picker-row">
+
+                    <div>
+
+                        <span
+                            style="font-size:0.85rem; font-weight:bold; color:var(--accent-cyan);"
+                        >
+                            Period A Start:
+                        </span>
+
+                        <input type="date" id="dateAStart">
+
+                        <span
+                            style="font-size:0.85rem; font-weight:bold; color:var(--accent-cyan);"
+                        >
+                            End:
+                        </span>
+
+                        <input type="date" id="dateAEnd">
+
+                    </div>
+
+
+                    <div
+                        style="border-left: 1px solid var(--border-color); padding-left: 15px;"
+                    >
+
+                        <span
+                            style="font-size:0.85rem; font-weight:bold; color:var(--accent-pink);"
+                        >
+                            Period B Start:
+                        </span>
+
+                        <input type="date" id="dateBStart">
+
+                        <span
+                            style="font-size:0.85rem; font-weight:bold; color:var(--accent-pink);"
+                        >
+                            End:
+                        </span>
+
+                        <input type="date" id="dateBEnd">
+
+                    </div>
+
+
+                    <button
+                        class="btn btn-primary"
+                        style="width: auto; padding: 6px 15px;"
+                        onclick="calculateCalendarComparison()"
+                    >
+                        COMPUTE DELTA %
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="analyticsOutput"
+                    style="font-size: 0.85rem; color: #fff; white-space: pre-wrap; background: #07080d; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);"
+                >
+                    Results will generate here...
+                </div>
+
+            </div>
+
+
+            <hr
+                style="border-color: var(--border-color); margin: 25px 0;"
+            >
+
+
+            <h3 style="font-size: 1rem;">
+                5. DATA BACKUP & MAINTENANCE
+            </h3>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;"
+            >
+
+                <button
+                    class="btn"
+                    style="background: #a87900; color: #fff; border: none;"
+                    onclick="clearOnlyPointsData()"
+                >
+                    RESET ONLY HISTORICAL POINTS LOG
+                </button>
+
+                <button
+                    class="btn"
+                    style="background: #501111; color: #ff9999; border: none;"
+                    onclick="clearAllData()"
+                >
+                    CLEAR ALL SYSTEM DATA
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="exportDataState()"
+                >
+                    EXPORT STATE (JSON)
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="triggerImportClick()"
+                >
+                    IMPORT STATE (JSON)
+                </button>
+
+                <button
+                    class="btn"
+                    onclick="exportAccumulatedList()"
+                >
+                    EXPORT ACCUMULATED LIST
+                </button>
+
+                <input
+                    type="file"
+                    id="importFileInput"
+                    style="display: none;"
+                    onchange="importDataState(event)"
+                >
+
+            </div>
+
+
+            <button
+                class="btn"
+                style="margin-top: 30px; border-color: var(--accent-cyan);"
+                onclick="closeModal('settingsModal')"
+            >
+                CLOSE CONFIGURATOR
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- LOG MODAL -->
+
+    <div id="logModal" class="modal-overlay">
+
+        <div class="modal-content">
+
+            <h2 style="margin-top:0;">
+                POINTS TRANSACTION TICKETS LOG
+            </h2>
+
+            <p style="font-size: 0.85rem; color:#888;">
+                Review point history events. Removing an accidental entry
+                will retroactively recompute historical math points records cleanly.
+            </p>
+
+            <hr
+                style="border-color: var(--border-color); margin-bottom: 15px;"
+            >
+
+            <div
+                id="logItemsContainer"
+                style="max-height: 400px; overflow-y: auto;"
+            ></div>
+
+            <button
+                class="btn"
+                style="margin-top: 20px;"
+                onclick="closeModal('logModal')"
+            >
+                CLOSE LOG WINDOW
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CLASSROOM TOOLS BOTTOM NAVIGATION
+         ========================================================= -->
+
+    <nav
+        class="classroom-tools-nav"
+        aria-label="Classroom Tools navigation"
+    >
+
+        <a href="../index.html">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Tools</span>
+        </a>
+
+        <a href="../NamePicker/index.html">
+            <span class="nav-icon">🎲</span>
+            <span class="nav-label">Summoner</span>
+        </a>
+
+        <a
+            href="index.html"
+            class="active points"
+        >
+            <span class="nav-icon">🦸</span>
+            <span class="nav-label">Points</span>
+        </a>
+
+        <a href="../Emote/index.html">
+            <span class="nav-icon">😀</span>
+            <span class="nav-label">Emotion</span>
+        </a>
+
+    </nav>
+
+
+    <script>
+
+        // =========================================================
+        // INTERNAL DATA STORAGE
+        // =========================================================
+
+        let state = {
+            headerTitle: "GROUP POINT SYSTEM",
+            groups: {},
+            students: {},
+            logs: [],
+            showIndividualMetrics: true,
+            backgroundColor: "#0d0e15"
+        };
+
+        let pointTarget = {
+            type: null,
+            targetId: null
+        };
+
+
+        // =========================================================
+        // DATE
+        // =========================================================
+
+        function getTodayDateString() {
+
+            const now = new Date();
+
+            const year = now.getFullYear();
+
+            const month = String(
+                now.getMonth() + 1
+            ).padStart(2, '0');
+
+            const day = String(
+                now.getDate()
+            ).padStart(2, '0');
+
+            return `${year}-${month}-${day}`;
+        }
+
+
+        // =========================================================
+        // FALLBACK DATA
+        // =========================================================
+
+        function initFallbackData() {
+
+            state.headerTitle = "GROUP POINT SYSTEM";
+
+            state.showIndividualMetrics = true;
+
+            state.backgroundColor = "#0d0e15";
+
+            for (let i = 1; i <= 8; i++) {
+
+                state.groups[`g_${i}`] = {
+                    id: `g_${i}`,
+                    name: `Group ${i}`
+                };
+
+            }
+
+            state.students['s_1'] = {
+                id: 's_1',
+                name: 'John Doe',
+                groupId: 'g_1'
+            };
+
+            state.students['s_2'] = {
+                id: 's_2',
+                name: 'Mary Jane',
+                groupId: 'g_1'
+            };
+
+            saveToLocalStorage();
+        }
+
+
+        // =========================================================
+        // LOCAL STORAGE
+        // =========================================================
+
+        function saveToLocalStorage() {
+
+            localStorage.setItem(
+                'simplified_point_state_v4',
+                JSON.stringify(state)
+            );
+
+        }
+
+
+        function loadFromLocalStorage() {
+
+            const stored = localStorage.getItem(
+                'simplified_point_state_v4'
+            );
+
+            if (stored) {
+
+                try {
+
+                    state = JSON.parse(stored);
+
+                    if (!state.headerTitle)
+                        state.headerTitle = "GROUP POINT SYSTEM";
+
+                    if (state.showIndividualMetrics === undefined)
+                        state.showIndividualMetrics = true;
+
+                    if (!state.backgroundColor)
+                        state.backgroundColor = "#0d0e15";
+
+                } catch (e) {
+
+                    initFallbackData();
+
+                }
+
+            } else {
+
+                initFallbackData();
+
+            }
+
+
+            document.getElementById(
+                'mainHeaderTitle'
+            ).value = state.headerTitle;
+
+
+            document.getElementById(
+                'showIndividualMetricsToggle'
+            ).checked = state.showIndividualMetrics;
+
+
+            document.getElementById(
+                'bgColorPicker'
+            ).value = state.backgroundColor;
+
+
+            document.documentElement.style.setProperty(
+                '--bg-color',
+                state.backgroundColor
+            );
+
+
+            const savedWidth =
+                localStorage.getItem(
+                    'group_card_width_layout'
+                );
+
+            if (savedWidth) {
+
+                document.getElementById(
+                    'widthSlider'
+                ).value = savedWidth;
+
+                adjustCardWidth(savedWidth);
+
+            }
+
+
+            const savedHeightStep =
+                localStorage.getItem(
+                    'student_height_layout_step'
+                );
+
+            if (savedHeightStep) {
+
+                document.getElementById(
+                    'heightSlider'
+                ).value = savedHeightStep;
+
+                adjustStudentHeight(savedHeightStep);
+
+            }
+
+        }
+
+
+        // =========================================================
+        // DISPLAY SETTINGS
+        // =========================================================
+
+        function adjustCardWidth(val) {
+
+            document.documentElement.style.setProperty(
+                '--card-min-width',
+                val + 'px'
+            );
+
+            localStorage.setItem(
+                'group_card_width_layout',
+                val
+            );
+
+        }
+
+
+        function adjustStudentHeight(step) {
+
+            let padding = "7px";
+            let fontSize = "0.88rem";
+
+            if (step === "1") {
+
+                padding = "3px";
+                fontSize = "0.78rem";
+
+            } else if (step === "2") {
+
+                padding = "7px";
+                fontSize = "0.88rem";
+
+            } else if (step === "3") {
+
+                padding = "12px";
+                fontSize = "1rem";
+
+            }
+
+
+            document.documentElement.style.setProperty(
+                '--student-pill-padding',
+                padding
+            );
+
+            document.documentElement.style.setProperty(
+                '--student-font-size',
+                fontSize
+            );
+
+
+            localStorage.setItem(
+                'student_height_layout_step',
+                step
+            );
+
+        }
+
+
+        function toggleIndividualMetrics(show) {
+
+            state.showIndividualMetrics = show;
+
+            saveToLocalStorage();
+
+            renderMainDashboard();
+
+        }
+
+
+        function changeBackgroundColor(color) {
+
+            state.backgroundColor = color;
+
+            document.documentElement.style.setProperty(
+                '--bg-color',
+                color
+            );
+
+            saveToLocalStorage();
+
+        }
+
+
+        function saveHeaderLabels() {
+
+            state.headerTitle =
+                document.getElementById(
+                    'mainHeaderTitle'
+                ).value;
+
+            saveToLocalStorage();
+
+        }
+
+
+        // =========================================================
+        // MAIN DASHBOARD
+        // =========================================================
+
+        function renderMainDashboard() {
+
+            const grid =
+                document.getElementById(
+                    'groupsDisplayGrid'
+                );
+
+            grid.innerHTML = '';
+
+            const todayStr =
+                getTodayDateString();
+
+
+            const groupScores = {};
+            const groupEarnedPointsToday = {};
+
+
+            Object.keys(state.groups).forEach(
+                gId => {
+
+                    groupScores[gId] = 0;
+
+                    groupEarnedPointsToday[gId] = false;
+
+                }
+            );
+
+
+            state.logs.forEach(log => {
+
+                if (
+                    groupScores[log.groupId] !== undefined
+                ) {
+
+                    groupScores[log.groupId] += log.points;
+
+                    if (
+                        log.dateStr === todayStr &&
+                        log.points > 0
+                    ) {
+
+                        groupEarnedPointsToday[
+                            log.groupId
+                        ] = true;
+
+                    }
+
+                }
+
+            });
+
+
+            Object.keys(state.groups).forEach(
+                groupId => {
+
+                    const group =
+                        state.groups[groupId];
+
+                    const groupCard =
+                        document.createElement('div');
+
+
+                    groupCard.className =
+                        'group-card' +
+                        (
+                            groupEarnedPointsToday[groupId]
+                                ? ' has-points-today'
+                                : ''
+                        );
+
+
+                    groupCard.onclick = (e) => {
+
+                        if (
+                            e.target.closest(
+                                '.student-pill'
+                            )
+                        ) return;
+
+                        triggerPointsAllocation(
+                            'group',
+                            groupId
+                        );
+
+                    };
+
+
+                    const header =
+                        document.createElement('div');
+
+                    header.className =
+                        'group-header';
+
+
+                    header.innerHTML = `
+                        <span
+                            class="group-name"
+                            title="${group.name}"
+                        >
+                            ${group.name}
+                        </span>
+
+                        <span class="group-score">
+                            ${groupScores[groupId]} pts
+                        </span>
+                    `;
+
+
+                    groupCard.appendChild(header);
+
+
+                    const listContainer =
+                        document.createElement('div');
+
+                    listContainer.className =
+                        'student-list';
+
+
+                    Object.values(
+                        state.students
+                    ).forEach(student => {
+
+                        if (
+                            student.groupId === groupId
+                        ) {
+
+                            const pill =
+                                document.createElement(
+                                    'div'
+                                );
+
+                            pill.className =
+                                'student-pill';
+
+
+                            pill.onclick = () =>
+                                triggerPointsAllocation(
+                                    'student',
+                                    student.id
+                                );
+
+
+                            const metrics =
+                                getStudentAccumulatedMetrics(
+                                    student.id
+                                );
+
+
+                            const metricsClass =
+                                state.showIndividualMetrics
+                                    ? ""
+                                    : "hidden-metrics";
+
+
+                            pill.innerHTML = `
+                                <span>
+                                    ${student.name}
+                                </span>
+
+                                <span
+                                    class="${metricsClass}"
+                                    style="
+                                        font-size:0.75rem;
+                                        color:var(--accent-cyan);
+                                        opacity:0.85;
+                                        margin-left:5px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    (${metrics.points} pts [${metrics.count}x])
+                                </span>
+                            `;
+
+
+                            listContainer.appendChild(
+                                pill
+                            );
+
+                        }
+
+                    });
+
+
+                    groupCard.appendChild(
+                        listContainer
+                    );
+
+                    grid.appendChild(
+                        groupCard
+                    );
+
+                }
+            );
+
+
+            renderSidebarSummary(
+                groupScores
+            );
+
+        }
+
+
+        function renderSidebarSummary(
+            groupScores
+        ) {
+
+            const summary =
+                document.getElementById(
+                    'dailySummaryContainer'
+                );
+
+            summary.innerHTML = '';
+
+
+            Object.keys(
+                state.groups
+            ).forEach(groupId => {
+
+                const item =
+                    document.createElement('div');
+
+                item.className =
+                    'summary-item';
+
+
+                item.innerHTML = `
+                    <span
+                        style="
+                            overflow:hidden;
+                            text-overflow:ellipsis;
+                            white-space:nowrap;
+                            padding-right:10px;
+                        "
+                    >
+                        📌 ${state.groups[groupId].name}
+                    </span>
+
+                    <span
+                        style="
+                            font-weight:bold;
+                            color:var(--accent-cyan);
+                        "
+                    >
+                        ${groupScores[groupId]} PT
+                    </span>
+                `;
+
+
+                summary.appendChild(item);
+
+            });
+
+        }
+
+
+        function getStudentAccumulatedMetrics(
+            studentId
+        ) {
+
+            let points = 0;
+            let count = 0;
+
+
+            state.logs.forEach(log => {
+
+                if (
+                    log.studentId === studentId
+                ) {
+
+                    points += log.points;
+
+                    count += 1;
+
+                }
+
+            });
+
+
+            return {
+                points,
+                count
+            };
+
+        }
+
+
+        // =========================================================
+        // MODALS
+        // =========================================================
+
+        function openModal(id) {
+
+            document.getElementById(
+                id
+            ).classList.add('active');
+
+
+            if (id === 'logModal') {
+
+                renderLogsList();
+
+            }
+
+        }
+
+
+        function closeModal(id) {
+
+            document.getElementById(
+                id
+            ).classList.remove('active');
+
+            renderMainDashboard();
+
+        }
+
+
+        // =========================================================
+        // POINT ALLOCATION
+        // =========================================================
+
+        function triggerPointsAllocation(
+            type,
+            id
+        ) {
+
+            pointTarget.type = type;
+
+            pointTarget.targetId = id;
+
+
+            const title =
+                document.getElementById(
+                    'pointsModalTitle'
+                );
+
+            const subtitle =
+                document.getElementById(
+                    'pointsModalSubtitle'
+                );
+
+
+            if (type === 'group') {
+
+                title.innerText =
+                    `Add Points to: ${state.groups[id].name}`;
+
+                subtitle.innerText =
+                    "This will add points to the overall group score.";
+
+            } else {
+
+                title.innerText =
+                    `Add Points for: ${state.students[id].name}`;
+
+                subtitle.innerText =
+                    `Currently in: ${
+                        state.groups[
+                            state.students[id].groupId
+                        ]?.name ||
+                        'Unassigned List'
+                    }`;
+
+            }
+
+
+            openModal('pointsModal');
+
+        }
+
+
+        function submitPoints(amt) {
+
+            let groupId = '';
+            let groupName = '';
+            let studentId = '';
+            let studentName = '';
+
+
+            if (
+                pointTarget.type === 'group'
+            ) {
+
+                groupId =
+                    pointTarget.targetId;
+
+                groupName =
+                    state.groups[groupId].name;
+
+            } else {
+
+                studentId =
+                    pointTarget.targetId;
+
+                studentName =
+                    state.students[studentId].name;
+
+                groupId =
+                    state.students[studentId].groupId;
+
+                groupName =
+                    groupId
+                        ? state.groups[groupId].name
+                        : 'Unassigned';
+
+            }
+
+
+            const now = new Date();
+
+            const dateStr =
+                getTodayDateString();
+
+
+            const entry = {
+
+                id:
+                    'log_' +
+                    Date.now() +
+                    '_' +
+                    Math.random()
+                        .toString(36)
+                        .substr(2, 4),
+
+                timestamp:
+                    now.toLocaleString(),
+
+                dateStr,
+
+                studentId,
+
+                studentName,
+
+                groupId,
+
+                groupName,
+
+                points: amt
+
+            };
+
+
+            state.logs.push(entry);
+
+            saveToLocalStorage();
+
+            closeModal('pointsModal');
+
+            renderMainDashboard();
+
+        }
+
+
+        // =========================================================
+        // LOGS
+        // =========================================================
+
+        function renderLogsList() {
+
+            const container =
+                document.getElementById(
+                    'logItemsContainer'
+                );
+
+            container.innerHTML = '';
+
+
+            if (
+                state.logs.length === 0
+            ) {
+
+                container.innerHTML =
+                    '<div style="color:#666; text-align:center; padding:20px;">No historical data available.</div>';
+
+                return;
+
+            }
+
+
+            for (
+                let i = state.logs.length - 1;
+                i >= 0;
+                i--
+            ) {
+
+                const log =
+                    state.logs[i];
+
+                const item =
+                    document.createElement('div');
+
+                item.className =
+                    'log-list-item';
+
+
+                const assignmentContext =
+                    log.studentId
+
+                        ? `Student: <b style="color:var(--accent-pink);">${log.studentName}</b> awarded in <b>${log.groupName}</b>`
+
+                        : `Direct Allocation to Group: <b>${log.groupName}</b>`;
+
+
+                item.innerHTML = `
+
+                    <div>
+
+                        <small
+                            style="
+                                color:#666;
+                                margin-right:10px;
+                            "
+                        >
+                            ${log.timestamp}
+                        </small>
+
+                        <span>
+                            ${assignmentContext}
+                            |
+                            <b
+                                style="
+                                    color:var(--accent-cyan);
+                                "
+                            >
+                                +${log.points} Points
+                            </b>
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="btn-delete"
+                        onclick="purgeLogEntry(${i})"
+                    >
+                        REMOVE
+                    </button>
+
+                `;
+
+
+                container.appendChild(item);
+
+            }
+
+        }
+
+
+        function purgeLogEntry(index) {
+
+            if (
+                confirm(
+                    "Are you sure you want to delete this point entry? The system scores will update automatically."
+                )
+            ) {
+
+                state.logs.splice(
+                    index,
+                    1
+                );
+
+                saveToLocalStorage();
+
+                renderLogsList();
+
+            }
+
+        }
+
+
+        // =========================================================
+        // SETTINGS
+        // =========================================================
+
+        function initSettingsView() {
+
+            const gText =
+                Object.values(state.groups)
+                    .map(g => g.name)
+                    .join('\n');
+
+
+            document.getElementById(
+                'settingsGroupsInput'
+            ).value = gText;
+
+
+            const sText =
+                Object.values(state.students)
+                    .map(s => s.name)
+                    .join('\n');
+
+
+            document.getElementById(
+                'settingsStudentsInput'
+            ).value = sText;
+
+
+            const flatToday =
+                getTodayDateString();
+
+
+            if (
+                !document.getElementById(
+                    'dateAStart'
+                ).value
+            )
+                document.getElementById(
+                    'dateAStart'
+                ).value = flatToday;
+
+
+            if (
+                !document.getElementById(
+                    'dateAEnd'
+                ).value
+            )
+                document.getElementById(
+                    'dateAEnd'
+                ).value = flatToday;
+
+
+            if (
+                !document.getElementById(
+                    'dateBStart'
+                ).value
+            )
+                document.getElementById(
+                    'dateBStart'
+                ).value = flatToday;
+
+
+            if (
+                !document.getElementById(
+                    'dateBEnd'
+                ).value
+            )
+                document.getElementById(
+                    'dateBEnd'
+                ).value = flatToday;
+
+
+            renderDragSetupMatrix();
+
+            populateBatchSelectDropdown();
+
+        }
+
+
+        function populateBatchSelectDropdown() {
+
+            const select =
+                document.getElementById(
+                    'batchGroupSelect'
+                );
+
+            select.innerHTML =
+                '<option value="">-- Choose a Group --</option>';
+
+
+            Object.values(
+                state.groups
+            ).forEach(g => {
+
+                const opt =
+                    document.createElement(
+                        'option'
+                    );
+
+                opt.value = g.id;
+
+                opt.innerText = g.name;
+
+                select.appendChild(opt);
+
+            });
+
+        }
+
+
+        function executeBatchAssignment() {
+
+            const groupId =
+                document.getElementById(
+                    'batchGroupSelect'
+                ).value;
+
+
+            const namesText =
+                document.getElementById(
+                    'batchNamesInput'
+                ).value;
+
+
+            if (!groupId) {
+
+                alert(
+                    "Please select a target group from the dropdown list first."
+                );
+
+                return;
+
+            }
+
+
+            const lines =
+                namesText
+                    .split('\n')
+                    .map(l => l.trim())
+                    .filter(
+                        l => l.length > 0
+                    );
+
+
+            if (lines.length === 0) {
+
+                alert(
+                    "Please enter at least one name in the text area."
+                );
+
+                return;
+
+            }
+
+
+            let modifiedCount = 0;
+            let addedCount = 0;
+
+
+            lines.forEach(name => {
+
+                const existingStudent =
+                    Object.values(
+                        state.students
+                    ).find(
+                        s =>
+                            s.name.toLowerCase() ===
+                            name.toLowerCase()
+                    );
+
+
+                if (existingStudent) {
+
+                    existingStudent.groupId =
+                        groupId;
+
+                    modifiedCount++;
+
+                } else {
+
+                    const newId =
+                        's_' +
+                        Date.now() +
+                        '_' +
+                        Math.random()
+                            .toString(36)
+                            .substr(2, 4);
+
+
+                    state.students[newId] = {
+
+                        id: newId,
+
+                        name: name,
+
+                        groupId: groupId
+
+                    };
+
+
+                    addedCount++;
+
+                }
+
+            });
+
+
+            document.getElementById(
+                'batchNamesInput'
+            ).value = '';
+
+
+            const fullRosterText =
+                Object.values(
+                    state.students
+                )
+                .map(s => s.name)
+                .join('\n');
+
+
+            document.getElementById(
+                'settingsStudentsInput'
+            ).value =
+                fullRosterText;
+
+
+            saveToLocalStorage();
+
+            renderDragSetupMatrix();
+
+
+            alert(
+                `Batch complete!\n- ${addedCount} new student records added.\n- ${modifiedCount} existing student records re-routed.`
+            );
+
+        }
+
+
+        function saveRosters() {
+
+            const gLines =
+                document.getElementById(
+                    'settingsGroupsInput'
+                )
+                .value
+                .split('\n')
+                .map(l => l.trim())
+                .filter(
+                    l => l.length > 0
+                );
+
+
+            const currentGroups =
+                Object.values(
+                    state.groups
+                );
+
+
+            const newGroupsMap = {};
+
+
+            gLines.forEach(
+                (name, idx) => {
+
+                    const existingId =
+                        currentGroups[idx]
+                            ? currentGroups[idx].id
+                            : 'g_' +
+                              Date.now() +
+                              '_' +
+                              idx;
+
+
+                    newGroupsMap[
+                        existingId
+                    ] = {
+
+                        id: existingId,
+
+                        name: name
+
+                    };
+
+                }
+            );
+
+
+            state.groups =
+                newGroupsMap;
+
+
+            const sLines =
+                document.getElementById(
+                    'settingsStudentsInput'
+                )
+                .value
+                .split('\n')
+                .map(l => l.trim())
+                .filter(
+                    l => l.length > 0
+                );
+
+
+            const currentStudents =
+                Object.values(
+                    state.students
+                );
+
+
+            const newStudentsMap = {};
+
+
+            sLines.forEach(
+                (name, idx) => {
+
+                    const existing =
+                        currentStudents.find(
+                            s => s.name === name
+                        ) ||
+                        currentStudents[idx];
+
+
+                    const sId =
+                        existing
+                            ? existing.id
+                            : 's_' +
+                              Date.now() +
+                              '_' +
+                              idx;
+
+
+                    const gId =
+                        existing
+                            ? existing.groupId
+                            : '';
+
+
+                    const verifiedGId =
+                        state.groups[gId]
+                            ? gId
+                            : '';
+
+
+                    newStudentsMap[sId] = {
+
+                        id: sId,
+
+                        name: name,
+
+                        groupId: verifiedGId
+
+                    };
+
+                }
+            );
+
+
+            state.students =
+                newStudentsMap;
+
+
+            saveToLocalStorage();
+
+            renderDragSetupMatrix();
+
+            populateBatchSelectDropdown();
+
+
+            alert(
+                "Rosters and groups updated successfully."
+            );
+
+        }
+
+
+        // =========================================================
+        // DRAG & DROP
+        // =========================================================
+
+        function renderDragSetupMatrix() {
+
+            const pool =
+                document.getElementById(
+                    'poolUnassigned'
+                );
+
+            const container =
+                document.getElementById(
+                    'settingsGroupsContainer'
+                );
+
+
+            pool.innerHTML = '';
+
+            container.innerHTML = '';
+
+
+            Object.values(
+                state.groups
+            ).forEach(g => {
+
+                const box =
+                    document.createElement(
+                        'div'
+                    );
+
+
+                box.className =
+                    'settings-group-box';
+
+
+                box.setAttribute(
+                    'ondragover',
+                    'allowDrop(event)'
+                );
+
+
+                box.setAttribute(
+                    'ondrop',
+                    `handleDrop(event, '${g.id}')`
+                );
+
+
+                box.innerHTML = `
+
+                    <div
+                        style="
+                            font-weight:bold;
+                            color:var(--accent-cyan);
+                            font-size:0.8rem;
+                            margin-bottom:8px;
+                            border-bottom:1px solid #333;
+                            overflow:hidden;
+                            text-overflow:ellipsis;
+                            white-space:nowrap;
+                        "
+                    >
+                        ${g.name}
+                    </div>
+
+                `;
+
+
+                Object.values(
+                    state.students
+                ).forEach(s => {
+
+                    if (
+                        s.groupId === g.id
+                    ) {
+
+                        box.appendChild(
+                            createDraggableElement(s)
+                        );
+
+                    }
+
+                });
+
+
+                container.appendChild(box);
+
+            });
+
+
+            Object.values(
+                state.students
+            ).forEach(s => {
+
+                if (!s.groupId) {
+
+                    pool.appendChild(
+                        createDraggableElement(s)
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        function createDraggableElement(
+            student
+        ) {
+
+            const el =
+                document.createElement(
+                    'div'
+                );
+
+
+            el.className =
+                'draggable-student';
+
+
+            el.innerText =
+                student.name;
+
+
+            el.setAttribute(
+                'draggable',
+                'true'
+            );
+
+
+            el.setAttribute(
+                'ondragstart',
+                `handleDragStart(event, '${student.id}')`
+            );
+
+
+            return el;
+
+        }
+
+
+        function handleDragStart(
+            e,
+            studentId
+        ) {
+
+            e.dataTransfer.setData(
+                "text/plain",
+                studentId
+            );
+
+        }
+
+
+        function allowDrop(e) {
+
+            e.preventDefault();
+
+        }
+
+
+        function handleDrop(
+            e,
+            targetGroupId
+        ) {
+
+            e.preventDefault();
+
+
+            const studentId =
+                e.dataTransfer.getData(
+                    "text/plain"
+                );
+
+
+            if (
+                state.students[studentId]
+            ) {
+
+                state.students[
+                    studentId
+                ].groupId =
+                    targetGroupId;
+
+
+                saveToLocalStorage();
+
+                renderDragSetupMatrix();
+
+            }
+
+        }
+
+
+        // =========================================================
+        // ANALYTICS
+        // =========================================================
+
+        function calculateCalendarComparison() {
+
+            const dateAStart =
+                document.getElementById(
+                    'dateAStart'
+                ).value;
+
+
+            const dateAEnd =
+                document.getElementById(
+                    'dateAEnd'
+                ).value;
+
+
+            const dateBStart =
+                document.getElementById(
+                    'dateBStart'
+                ).value;
+
+
+            const dateBEnd =
+                document.getElementById(
+                    'dateBEnd'
+                ).value;
+
+
+            if (
+                !dateAStart ||
+                !dateAEnd ||
+                !dateBStart ||
+                !dateBEnd
+            ) {
+
+                alert(
+                    "Please select valid dates for all range limits."
+                );
+
+                return;
+
+            }
+
+
+            const getMetricsForPeriod =
+                (
+                    studentId,
+                    start,
+                    end
+                ) => {
+
+                    let points = 0;
+
+                    let count = 0;
+
+
+                    state.logs.forEach(log => {
+
+                        if (
+                            log.studentId === studentId &&
+                            log.dateStr >= start &&
+                            log.dateStr <= end
+                        ) {
+
+                            points += log.points;
+
+                            count += 1;
+
+                        }
+
+                    });
+
+
+                    return {
+                        points,
+                        count
+                    };
+
+                };
+
+
+            let output =
+                `=== PERFORMANCE TRAJECTORY ANALYSIS ===\n`;
+
+            output +=
+                `Period A: [${dateAStart} to ${dateAEnd}]\n`;
+
+            output +=
+                `Period B: [${dateBStart} to ${dateBEnd}]\n\n`;
+
+
+            Object.values(
+                state.students
+            ).forEach(s => {
+
+                const metricsA =
+                    getMetricsForPeriod(
+                        s.id,
+                        dateAStart,
+                        dateAEnd
+                    );
+
+
+                const metricsB =
+                    getMetricsForPeriod(
+                        s.id,
+                        dateBStart,
+                        dateBEnd
+                    );
+
+
+                let diffPercent = 0;
+
+
+                if (
+                    metricsA.points === 0
+                ) {
+
+                    diffPercent =
+                        metricsB.points > 0
+                            ? 100
+                            : 0;
+
+                } else {
+
+                    diffPercent =
+                        (
+                            (
+                                metricsB.points -
+                                metricsA.points
+                            ) /
+                            metricsA.points
+                        ) *
+                        100;
+
+                }
+
+
+                output +=
+                    `• ${s.name}:\n`;
+
+                output +=
+                    `  - Period A: ${metricsA.points} points across ${metricsA.count} interactions\n`;
+
+                output +=
+                    `  - Period B: ${metricsB.points} points across ${metricsB.count} interactions\n`;
+
+                output +=
+                    `  - Change Performance Value: ${
+                        diffPercent >= 0
+                            ? '+'
+                            : ''
+                    }${diffPercent.toFixed(1)}%\n\n`;
+
+            });
+
+
+            document.getElementById(
+                'analyticsOutput'
+            ).innerText =
+                output;
+
+        }
+
+
+        // =========================================================
+        // RESET / BACKUP
+        // =========================================================
+
+        function clearOnlyPointsData() {
+
+            if (
+                confirm(
+                    "Are you sure you want to completely clear out the points history? This will reset all current student and group scores back to 0 without deleting names or group assignments."
+                )
+            ) {
+
+                state.logs = [];
+
+                saveToLocalStorage();
+
+                renderMainDashboard();
+
+
+                if (
+                    document.getElementById(
+                        'analyticsOutput'
+                    )
+                ) {
+
+                    document.getElementById(
+                        'analyticsOutput'
+                    ).innerText =
+                        "Results will generate here...";
+
+                }
+
+
+                alert(
+                    "Points data reset successfully. Rosters preserved."
+                );
+
+            }
+
+        }
+
+
+        function clearAllData() {
+
+            if (
+                confirm(
+                    "WARNING: This will delete all student records, group records, and accumulated log history. Continue?"
+                )
+            ) {
+
+                localStorage.removeItem(
+                    'simplified_point_state_v4'
+                );
+
+
+                state = {
+
+                    headerTitle:
+                        "GROUP POINT SYSTEM",
+
+                    groups: {},
+
+                    students: {},
+
+                    logs: [],
+
+                    showIndividualMetrics:
+                        true,
+
+                    backgroundColor:
+                        "#0d0e15"
+
+                };
+
+
+                initFallbackData();
+
+                renderMainDashboard();
+
+                initSettingsView();
+
+                closeModal(
+                    'settingsModal'
+                );
+
+            }
+
+        }
+
+
+        function exportDataState() {
+
+            const dataStr =
+                "data:text/json;charset=utf-8," +
+                encodeURIComponent(
+                    JSON.stringify(state)
+                );
+
+
+            const dlAnchorElem =
+                document.createElement('a');
+
+
+            dlAnchorElem.setAttribute(
+                "href",
+                dataStr
+            );
+
+
+            dlAnchorElem.setAttribute(
+                "download",
+                `group_points_backup_${Date.now()}.json`
+            );
+
+
+            dlAnchorElem.click();
+
+        }
+
+
+        function triggerImportClick() {
+
+            document.getElementById(
+                'importFileInput'
+            ).click();
+
+        }
+
+
+        function importDataState(e) {
+
+            const fileReader =
+                new FileReader();
+
+
+            fileReader.onload =
+                function(event) {
+
+                    try {
+
+                        const parsed =
+                            JSON.parse(
+                                event.target.result
+                            );
+
+
+                        if (
+                            parsed.groups &&
+                            parsed.students &&
+                            parsed.logs
+                        ) {
+
+                            state = parsed;
+
+                            saveToLocalStorage();
+
+                            renderMainDashboard();
+
+                            initSettingsView();
+
+
+                            if (
+                                state.backgroundColor
+                            ) {
+
+                                document.getElementById(
+                                    'bgColorPicker'
+                                ).value =
+                                    state.backgroundColor;
+
+
+                                document.documentElement.style.setProperty(
+                                    '--bg-color',
+                                    state.backgroundColor
+                                );
+
+                            }
+
+
+                            if (
+                                state.showIndividualMetrics !==
+                                undefined
+                            ) {
+
+                                document.getElementById(
+                                    'showIndividualMetricsToggle'
+                                ).checked =
+                                    state.showIndividualMetrics;
+
+                            }
+
+
+                            alert(
+                                "Data backup file parsed and restored successfully."
+                            );
+
+                        } else {
+
+                            alert(
+                                "Error: Invalid structural format file."
+                            );
+
+                        }
+
+                    } catch (err) {
+
+                        alert(
+                            "Failed to parse file."
+                        );
+
+                    }
+
+                };
+
+
+            fileReader.readAsText(
+                e.target.files[0]
+            );
+
+        }
+
+
+        function exportAccumulatedList() {
+
+            const groupScores = {};
+
+
+            Object.keys(
+                state.groups
+            ).forEach(
+                gId =>
+                    groupScores[gId] = 0
+            );
+
+
+            state.logs.forEach(log => {
+
+                if (
+                    groupScores[log.groupId] !==
+                    undefined
+                ) {
+
+                    groupScores[
+                        log.groupId
+                    ] += log.points;
+
+                }
+
+            });
+
+
+            let trackingLines = [];
+
+
+            Object.keys(
+                state.groups
+            ).forEach(gId => {
+
+                const score =
+                    groupScores[gId];
+
+                const name =
+                    state.groups[gId].name;
+
+
+                for (
+                    let i = 0;
+                    i < score;
+                    i++
+                ) {
+
+                    trackingLines.push(
+                        name
+                    );
+
+                }
+
+            });
+
+
+            const blobOutputStr =
+                trackingLines.join('\n');
+
+
+            const dataStr =
+                "data:text/plain;charset=utf-8," +
+                encodeURIComponent(
+                    blobOutputStr
+                );
+
+
+            const dlAnchorElem =
+                document.createElement('a');
+
+
+            dlAnchorElem.setAttribute(
+                "href",
+                dataStr
+            );
+
+
+            dlAnchorElem.setAttribute(
+                "download",
+                `accumulated_list_${Date.now()}.txt`
+            );
+
+
+            dlAnchorElem.click();
+
+        }
+
+
+        // =========================================================
+        // INITIALIZE
+        // =========================================================
+
+        window.onload = function() {
+
+            loadFromLocalStorage();
+
+            renderMainDashboard();
+
+
+            setInterval(
+                renderMainDashboard,
+                30000
+            );
+
+        };
+
+    </script>
+
+</body>
+</html>
