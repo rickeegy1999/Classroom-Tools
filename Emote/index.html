@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" 
+content="width=device-width, initial-scale=1.0">
+
+<title>Teacher Emotion</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#000000">
+
+
+<style>
+
+* {
+    box-sizing:border-box;
+}
+
+
+body {
+
+    margin:0;
+    height:100vh;
+
+    background:black;
+    color:white;
+
+    font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+}
+
+
+/* Main emotion */
+
+#display {
+
+    text-align:center;
+
+}
+
+
+#emoji {
+
+    font-size:150px;
+
+}
+
+
+#emotion {
+
+    margin-top:20px;
+
+    font-size:45px;
+
+    font-weight:bold;
+
+}
+
+
+
+/* Floating button */
+
+#menuButton {
+
+    position:fixed;
+
+    right:25px;
+
+    bottom:25px;
+
+
+    width:80px;
+
+    height:80px;
+
+
+    border-radius:50%;
+
+
+    border:none;
+
+
+    background:white;
+
+    color:black;
+
+
+    font-size:40px;
+
+
+    box-shadow:
+    0 0 20px white;
+
+
+}
+
+
+
+/* Menu */
+
+
+#menu {
+
+
+    display:none;
+
+
+    position:fixed;
+
+
+    right:20px;
+
+    bottom:120px;
+
+
+    width:320px;
+
+
+    background:#111;
+
+
+    border-radius:25px;
+
+
+    padding:20px;
+
+
+    box-shadow:
+    0 0 30px grey;
+
+
+}
+
+
+
+#menu h2 {
+
+    text-align:center;
+
+}
+
+
+
+.emojiChoice {
+
+
+    font-size:45px;
+
+    margin:8px;
+
+    cursor:pointer;
+
+
+}
+
+
+
+button.word {
+
+
+    width:100%;
+
+
+    margin:7px 0;
+
+
+    padding:14px;
+
+
+    border-radius:15px;
+
+
+    border:none;
+
+
+    background:#333;
+
+
+    color:white;
+
+
+    font-size:18px;
+
+
+}
+
+
+
+button.word:active {
+
+    background:#666;
+
+}
+
+
+
+</style>
+
+</head>
+
+
+
+<body>
+
+
+
+<div id="display">
+
+<div id="emoji">
+🙂
+</div>
+
+
+<div id="emotion">
+Ready
+</div>
+
+
+</div>
+
+
+
+<button id="menuButton">
+😊
+</button>
+
+
+
+
+<div id="menu">
+
+
+<h2>
+How do I feel?
+</h2>
+
+
+
+<div>
+
+
+<span class="emojiChoice"
+onclick="selectEmoji('😀','happy')">
+😀
+</span>
+
+
+<span class="emojiChoice"
+onclick="selectEmoji('🤩','excited')">
+🤩
+</span>
+
+
+<span class="emojiChoice"
+onclick="selectEmoji('😑','neutral')">
+😑
+</span>
+
+
+<span class="emojiChoice"
+onclick="selectEmoji('🙁','sad')">
+🙁
+</span>
+
+
+<span class="emojiChoice"
+onclick="selectEmoji('😡','angry')">
+😡
+</span>
+
+
+</div>
+
+
+
+<div id="words"></div>
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+const emotions = {
+
+
+happy:[
+
+"Joyful",
+"Satisfied",
+"Proud",
+"Confident",
+"Fulfilled",
+"Appreciated"
+
+],
+
+
+
+excited:[
+
+"Impressed",
+"Inspired",
+"Amazed",
+"Enthusiastic",
+"Encouraged",
+"Motivated",
+"Proud"
+
+],
+
+
+
+neutral:[
+
+"Tired",
+"Drained",
+"Unsure",
+"Calm",
+"Reflective",
+"Uninspired"
+
+],
+
+
+
+sad:[
+
+"Concerned",
+"Worried",
+"Disappointed",
+"Discouraged",
+"Disheartened",
+"Frustrated"
+
+],
+
+
+
+angry:[
+
+"Annoyed",
+"Irritated",
+"Upset",
+"Overwhelmed",
+"Stressed",
+"Impatient"
+
+]
+
+};
+
+
+
+
+let currentEmoji="🙂";
+
+
+
+document
+.getElementById("menuButton")
+.onclick=function(){
+
+document
+.getElementById("menu")
+.style.display="block";
+
+};
+
+
+
+
+
+
+function selectEmoji(icon,type){
+
+
+currentEmoji=icon;
+
+
+let box=document
+.getElementById("words");
+
+
+box.innerHTML="";
+
+
+
+emotions[type].forEach(word=>{
+
+
+let button=document.createElement("button");
+
+
+button.className="word";
+
+
+button.innerHTML=word;
+
+
+
+button.onclick=function(){
+
+
+
+document
+.getElementById("emoji")
+.innerHTML=currentEmoji;
+
+
+
+document
+.getElementById("emotion")
+.innerHTML=word;
+
+
+
+localStorage.setItem(
+"emoji",
+currentEmoji
+);
+
+
+
+localStorage.setItem(
+"emotion",
+word
+);
+
+
+
+document
+.getElementById("menu")
+.style.display="none";
+
+
+};
+
+
+
+box.appendChild(button);
+
+
+
+});
+
+
+}
+
+
+
+
+
+
+window.onload=function(){
+
+
+document
+.getElementById("emoji")
+.innerHTML=
+localStorage.getItem("emoji")
+||
+"🙂";
+
+
+
+document
+.getElementById("emotion")
+.innerHTML=
+localStorage.getItem("emotion")
+||
+"Ready";
+
+
+}
+
+
+
+
+
+// PWA offline support
+
+if("serviceWorker" in navigator){
+
+navigator.serviceWorker.register(
+"sw.js"
+);
+
+}
+
+
+
+</script>
+
+
+</body>
+
+</html>
