@@ -12,7 +12,7 @@
 
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -34,42 +34,41 @@
 
 
         body {
-            font-family:
-                'Quicksand',
-                -apple-system,
-                BlinkMacSystemFont,
-                sans-serif;
+    font-family:
+        'Quicksand',
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
 
-            background:
-                radial-gradient(
-                    circle at center,
-                    #2d004d 0%,
-                    #10002b 100%
-                );
+    background:
+        radial-gradient(
+            circle at center,
+            #2d004d 0%,
+            #10002b 100%
+        );
 
-            margin: 0;
+    margin: 0;
 
-            padding: 0;
+    padding: 0;
 
-            min-height: 100vh;
+    min-height: 100vh;
 
-            color: var(--text);
+    min-height: 100dvh;
 
-            overflow: hidden;
+    color: var(--text);
 
-            position: relative;
+    overflow: hidden;
 
-            box-sizing: border-box;
+    position: relative;
 
-            -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
 
-            /*
-             * Extra bottom space so the navigation
-             * does not cover the controls.
-             */
-            padding-bottom: 75px;
-        }
+    -webkit-tap-highlight-color: transparent;
 
+    padding-bottom: calc(
+        75px + env(safe-area-inset-bottom)
+    );
+}
 
         #classTitle {
             font-family:
@@ -473,7 +472,7 @@
             right: 0;
             bottom: 0;
 
-            height: 65px;
+            height: calc(65px + env(safe-area-inset-bottom));
 
             background:
                 rgba(18, 18, 18, 0.96);
