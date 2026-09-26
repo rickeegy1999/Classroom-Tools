@@ -2,6 +2,7 @@
   "name": "Heart Squad — Class Points System",
   "short_name": "Heart Squad",
   "description": "Offline class points and values tracker for Respect, Responsibility and Resilience.",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
