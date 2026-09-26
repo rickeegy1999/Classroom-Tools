@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <title>Classroom Tools</title>
+
+  <meta name="theme-color" content="#f4f1ff">
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="Classroom Tools"
+  >
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+
+    html {
+      min-height: 100%;
+    }
+
+
+    body {
+
+      margin: 0;
+
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+      background:
+        radial-gradient(
+          circle at 10% 10%,
+          rgba(255, 221, 241, 0.75),
+          transparent 30%
+        ),
+
+        radial-gradient(
+          circle at 90% 15%,
+          rgba(211, 226, 255, 0.8),
+          transparent 30%
+        ),
+
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(225, 216, 255, 0.8),
+          transparent 35%
+        ),
+
+        #f7f7fc;
+
+      color: #25233a;
+
+      padding-bottom:
+        calc(76px + env(safe-area-inset-bottom));
+    }
+
+
+    button,
+    a {
+      font: inherit;
+    }
+
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+
+    /* ========================================
+       PAGE
+    ======================================== */
+
+    .page {
+
+      width: 100%;
+
+      max-width: 1200px;
+
+      margin: 0 auto;
+
+      padding:
+        42px 24px 50px;
+    }
+
+
+    /* ========================================
+       HEADER
+    ======================================== */
+
+    .header {
+
+      text-align: center;
+
+      margin-bottom: 42px;
+    }
+
+
+    .header-icon {
+
+      width: 76px;
+      height: 76px;
+
+      margin:
+        0 auto 18px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 24px;
+
+      background:
+        rgba(255, 255, 255, 0.82);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.95);
+
+      box-shadow:
+
+        0 12px 30px
+        rgba(60, 52, 100, 0.12),
+
+        inset 0 1px 0
+        rgba(255,255,255,0.8);
+
+      font-size: 40px;
+    }
+
+
+    .title {
+
+      margin: 0;
+
+      font-size:
+        clamp(38px, 6vw, 62px);
+
+      line-height: 1.05;
+
+      font-weight: 800;
+
+      letter-spacing: -2px;
+
+      color: #29253f;
+    }
+
+
+    .subtitle {
+
+      margin:
+        14px auto 0;
+
+      max-width: 620px;
+
+      font-size:
+        clamp(17px, 2.5vw, 21px);
+
+      line-height: 1.5;
+
+      color: #6e6a80;
+    }
+
+
+    /* ========================================
+       SECTION
+    ======================================== */
+
+    .section-heading {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 12px;
+
+      margin:
+        0 0 18px;
+    }
+
+
+    .section-heading h2 {
+
+      margin: 0;
+
+      font-size: 24px;
+
+      font-weight: 800;
+
+      color: #353148;
+    }
+
+
+    .section-line {
+
+      flex: 1;
+
+      height: 1px;
+
+      background:
+        rgba(80, 74, 110, 0.13);
+    }
+
+
+    /* ========================================
+       TOOL GRID
+    ======================================== */
+
+    .tools-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 22px;
+    }
+
+
+    .tool-card {
+
+      position: relative;
+
+      display: flex;
+
+      flex-direction: column;
+
+      min-height: 280px;
+
+      padding: 26px;
+
+      border-radius: 28px;
+
+      background:
+        rgba(255, 255, 255, 0.86);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.95);
+
+      box-shadow:
+
+        0 14px 35px
+        rgba(62, 57, 91, 0.10),
+
+        inset 0 1px 0
+        rgba(255,255,255,0.85);
+
+      overflow: hidden;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+
+    .tool-card::before {
+
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 0;
+      right: 0;
+
+      height: 6px;
+
+      background:
+        var(--accent);
+    }
+
+
+    .tool-card:hover {
+
+      transform:
+        translateY(-5px);
+
+      box-shadow:
+
+        0 20px 45px
+        rgba(62, 57, 91, 0.15),
+
+        inset 0 1px 0
+        rgba(255,255,255,0.9);
+    }
+
+
+    .tool-card:active {
+
+      transform:
+        translateY(-1px)
+        scale(0.99);
+    }
+
+
+    .tool-icon {
+
+      width: 72px;
+      height: 72px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 22px;
+
+      background:
+        var(--icon-bg);
+
+      font-size: 40px;
+
+      margin-bottom: 20px;
+    }
+
+
+    .tool-name {
+
+      margin: 0;
+
+      font-size: 25px;
+
+      line-height: 1.2;
+
+      font-weight: 800;
+
+      color: #2e2a42;
+    }
+
+
+    .tool-description {
+
+      margin:
+        10px 0 0;
+
+      font-size: 17px;
+
+      line-height: 1.5;
+
+      color: #777286;
+
+      flex: 1;
+    }
+
+
+    .open-button {
+
+      align-self: flex-start;
+
+      margin-top: 22px;
+
+      padding:
+        11px 17px;
+
+      border: 0;
+
+      border-radius: 14px;
+
+      background:
+        var(--button-bg);
+
+      color:
+        var(--button-text);
+
+      font-size: 16px;
+
+      font-weight: 750;
+
+      pointer-events: none;
+    }
+
+
+    /* ========================================
+       TOOL COLOURS
+    ======================================== */
+
+    .name-picker {
+
+      --accent: #8d63e8;
+
+      --icon-bg: #f0e8ff;
+
+      --button-bg: #eee5ff;
+
+      --button-text: #6841b5;
+    }
+
+
+    .heart-squad {
+
+      --accent: #ee719b;
+
+      --icon-bg: #ffe8f0;
+
+      --button-bg: #ffe5ee;
+
+      --button-text: #bd3f69;
+    }
+
+
+    .teacher-emotion {
+
+      --accent: #55a9e8;
+
+      --icon-bg: #e5f4ff;
+
+      --button-bg: #e1f2ff;
+
+      --button-text: #2874aa;
+    }
+
+
+    /* ========================================
+       FUTURE TOOLS
+    ======================================== */
+
+    .future-section {
+
+      margin-top: 48px;
+    }
+
+
+    .future-note {
+
+      margin:
+        0 0 18px;
+
+      font-size: 16px;
+
+      color: #817c91;
+    }
+
+
+    .future-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 18px;
+    }
+
+
+    .future-card {
+
+      min-height: 130px;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 18px;
+
+      padding: 20px;
+
+      border:
+        2px dashed
+        rgba(117, 110, 142, 0.20);
+
+      border-radius: 22px;
+
+      background:
+        rgba(255,255,255,0.42);
+
+      color: #8a8597;
+    }
+
+
+    .future-icon {
+
+      width: 54px;
+      height: 54px;
+
+      flex-shrink: 0;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      border-radius: 16px;
+
+      background:
+        rgba(255,255,255,0.7);
+
+      font-size: 28px;
+    }
+
+
+    .future-name {
+
+      margin:
+        0 0 4px;
+
+      font-size: 18px;
+
+      font-weight: 750;
+
+      color: #777184;
+    }
+
+
+    .future-description {
+
+      margin: 0;
+
+      font-size: 14px;
+
+      line-height: 1.4;
+    }
+
+
+    /* ========================================
+       FOOTER
+    ======================================== */
+
+    .footer {
+
+      margin-top: 52px;
+
+      text-align: center;
+
+      font-size: 14px;
+
+      color: #9994a5;
+    }
+
+
+    /* ========================================
+       BOTTOM APP NAVIGATION
+    ======================================== */
+
+    .app-navigation {
+
+      position: fixed;
+
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      height: 68px;
+
+      padding:
+        5px 8px
+        calc(5px + env(safe-area-inset-bottom));
+
+      display: flex;
+
+      align-items: stretch;
+
+      justify-content: center;
+
+      gap: 5px;
+
+      background:
+        rgba(255, 255, 255, 0.94);
+
+      border-top:
+        1px solid
+        rgba(90, 84, 120, 0.14);
+
+      box-shadow:
+        0 -8px 30px
+        rgba(60, 52, 100, 0.10);
+
+      backdrop-filter:
+        blur(14px);
+
+      -webkit-backdrop-filter:
+        blur(14px);
+
+      z-index: 2000;
+    }
+
+
+    .nav-item {
+
+      flex: 1;
+
+      max-width: 180px;
+
+      min-width: 0;
+
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: center;
+
+      gap: 2px;
+
+      border-radius: 13px;
+
+      color: #8b8798;
+
+      text-decoration: none;
+
+      font-size: 11px;
+
+      font-weight: 700;
+
+      transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+    }
+
+
+    .nav-icon {
+
+      display: block;
+
+      font-size: 23px;
+
+      line-height: 1;
+    }
+
+
+    .nav-item:hover {
+
+      background:
+        rgba(100, 90, 140, 0.07);
+
+      color: #4f4964;
+    }
+
+
+    .nav-item:active {
+
+      transform:
+        scale(0.96);
+    }
+
+
+    .nav-item.active {
+
+      background:
+        #eee9ff;
+
+      color:
+        #6841b5;
+    }
+
+
+    .nav-item.active .nav-icon {
+
+      transform:
+        scale(1.08);
+    }
+
+
+    /* ========================================
+       RESPONSIVE
+    ======================================== */
+
+    @media (max-width: 900px) {
+
+      .tools-grid {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+
+      .future-grid {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+    }
+
+
+    @media (max-width: 620px) {
+
+      .page {
+
+        padding:
+          28px 16px 40px;
+      }
+
+
+      .header {
+
+        margin-bottom: 32px;
+      }
+
+
+      .header-icon {
+
+        width: 68px;
+        height: 68px;
+
+        font-size: 34px;
+      }
+
+
+      .title {
+
+        font-size: 40px;
+
+        letter-spacing: -1.5px;
+      }
+
+
+      .subtitle {
+
+        font-size: 17px;
+      }
+
+
+      .tools-grid,
+      .future-grid {
+
+        grid-template-columns: 1fr;
+      }
+
+
+      .tool-card {
+
+        min-height: 245px;
+
+        padding: 23px;
+      }
+
+
+      .tool-icon {
+
+        width: 64px;
+        height: 64px;
+
+        font-size: 35px;
+      }
+
+
+      .tool-name {
+
+        font-size: 23px;
+      }
+
+
+      .tool-description {
+
+        font-size: 16px;
+      }
+
+
+      .section-heading h2 {
+
+        font-size: 21px;
+      }
+
+
+      .app-navigation {
+
+        height: 64px;
+
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+
+      .nav-item {
+
+        font-size: 9px;
+
+        border-radius: 11px;
+      }
+
+
+      .nav-icon {
+
+        font-size: 21px;
+      }
+
+    }
+
+
+    /* ========================================
+       REDUCED MOTION
+    ======================================== */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .tool-card,
+      .nav-item {
+
+        transition: none;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <main class="page">
+
+
+    <!-- ======================================
+         HEADER
+    ======================================= -->
+
+    <header class="header">
+
+      <div
+        class="header-icon"
+        aria-hidden="true"
+      >
+        🧰
+      </div>
+
+
+      <h1 class="title">
+        Classroom Tools
+      </h1>
+
+
+      <p class="subtitle">
+
+        Your collection of simple tools for making
+        lessons smoother, more engaging and more fun.
+
+      </p>
+
+    </header>
+
+
+    <!-- ======================================
+         MAIN TOOLS
+    ======================================= -->
+
+    <section>
+
+
+      <div class="section-heading">
+
+        <h2>
+          My Tools
+        </h2>
+
+        <div class="section-line"></div>
+
+      </div>
+
+
+      <div class="tools-grid">
+
+
+        <!-- ==================================
+             NAME PICKER
+        =================================== -->
+
+        <a
+          class="tool-card name-picker"
+          href="namepicker/"
+          aria-label="Open The Great Summoner"
+        >
+
+          <div
+            class="tool-icon"
+            aria-hidden="true"
+          >
+            🎲
+          </div>
+
+
+          <h3 class="tool-name">
+
+            The Great Summoner
+
+          </h3>
+
+
+          <p class="tool-description">
+
+            Randomly summon a student from your
+            class with a little bit of magic.
+
+          </p>
+
+
+          <span class="open-button">
+
+            Open Tool →
+
+          </span>
+
+        </a>
+
+
+        <!-- ==================================
+             CLASS POINTS
+        =================================== -->
+
+        <a
+          class="tool-card heart-squad"
+          href="classpointsystem/"
+          aria-label="Open Class Points"
+        >
+
+          <div
+            class="tool-icon"
+            aria-hidden="true"
+          >
+            🦸
+          </div>
+
+
+          <h3 class="tool-name">
+
+            Class Points
+
+          </h3>
+
+
+          <p class="tool-description">
+
+            Track class points and recognise
+            positive participation and behaviour.
+
+          </p>
+
+
+          <span class="open-button">
+
+            Open Tool →
+
+          </span>
+
+        </a>
+
+
+        <!-- ==================================
+             TEACHER EMOTION
+        =================================== -->
+
+        <a
+          class="tool-card teacher-emotion"
+          href="emote/"
+          aria-label="Open Teacher Emotion"
+        >
+
+          <div
+            class="tool-icon"
+            aria-hidden="true"
+          >
+            😀
+          </div>
+
+
+          <h3 class="tool-name">
+
+            Teacher Emotion
+
+          </h3>
+
+
+          <p class="tool-description">
+
+            Let your class know how you're feeling
+            with a simple visual check-in.
+
+          </p>
+
+
+          <span class="open-button">
+
+            Open Tool →
+
+          </span>
+
+        </a>
+
+
+      </div>
+
+    </section>
+
+
+    <!-- ======================================
+         FUTURE TOOLS
+    ======================================= -->
+
+    <section class="future-section">
+
+
+      <div class="section-heading">
+
+        <h2>
+          More Tools
+        </h2>
+
+        <div class="section-line"></div>
+
+      </div>
+
+
+      <p class="future-note">
+
+        More classroom tools can be added here
+        as you build them.
+
+      </p>
+
+
+      <div class="future-grid">
+
+
+        <!-- GEOMETRY -->
+
+        <div class="future-card">
+
+          <div
+            class="future-icon"
+            aria-hidden="true"
+          >
+            📐
+          </div>
+
+
+          <div>
+
+            <h3 class="future-name">
+              Geometry
+            </h3>
+
+
+            <p class="future-description">
+
+              Draw, measure and explore geometry.
+
+            </p>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- NETS -->
+
+        <div class="future-card">
+
+          <div
+            class="future-icon"
+            aria-hidden="true"
+          >
+            🧊
+          </div>
+
+
+          <div>
+
+            <h3 class="future-name">
+              Nets
+            </h3>
+
+
+            <p class="future-description">
+
+              Explore nets and 3D shapes.
+
+            </p>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- MATHEMATICS -->
+
+        <div class="future-card">
+
+          <div
+            class="future-icon"
+            aria-hidden="true"
+          >
+            ➗
+          </div>
+
+
+          <div>
+
+            <h3 class="future-name">
+              Mathematics
+            </h3>
+
+
+            <p class="future-description">
+
+              Interactive mathematics activities.
+
+            </p>
+
+          </div>
+
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+    <!-- ======================================
+         FOOTER
+    ======================================= -->
+
+    <footer class="footer">
+
+      Classroom Tools
+
+    </footer>
+
+
+  </main>
+
+
+  <!-- ========================================
+       BOTTOM APP NAVIGATION
+  ========================================= -->
+
+  <nav
+    class="app-navigation"
+    aria-label="Classroom Tools navigation"
+  >
+
+
+    <a
+      class="nav-item active"
+      href="./"
+    >
+
+      <span class="nav-icon">
+        🏠
+      </span>
+
+      <span>
+        Tools
+      </span>
+
+    </a>
+
+
+    <a
+      class="nav-item"
+      href="namepicker/"
+    >
+
+      <span class="nav-icon">
+        🎲
+      </span>
+
+      <span>
+        Names
+      </span>
+
+    </a>
+
+
+    <a
+      class="nav-item"
+      href="emote/"
+    >
+
+      <span class="nav-icon">
+        😀
+      </span>
+
+      <span>
+        Emote
+      </span>
+
+    </a>
+
+
+    <a
+      class="nav-item"
+      href="classpointsystem/"
+    >
+
+      <span class="nav-icon">
+        ⭐
+      </span>
+
+      <span>
+        Points
+      </span>
+
+    </a>
+
+
+  </nav>
+
+
+  <!-- ========================================
+       ROOT PWA SERVICE WORKER
+  ========================================= -->
+
+  <script>
+
+    if ("serviceWorker" in navigator) {
+
+      window.addEventListener("load", () => {
+
+        navigator.serviceWorker
+          .register("./sw.js")
+          .catch(error => {
+
+            console.error(
+              "Classroom Tools service worker registration failed:",
+              error
+            );
+
+          });
+
+      });
+
+    }
+
+  </script>
+
+
+</body>
+</html>
