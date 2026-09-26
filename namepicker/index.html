@@ -1,22 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
     <title>The Great Summoner</title>
 
-    <link rel="manifest" href="manifest.json">
+    <link
+        rel="manifest"
+        href="./manifest.json"
+    >
 
-    <meta name="theme-color" content="#1a0033">
+    <meta
+        name="theme-color"
+        content="#1a0033"
+    >
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
 
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="default"
+    >
 
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta
+        name="apple-mobile-web-app-title"
+        content="The Great Summoner"
+    >
 
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link
+        rel="apple-touch-icon"
+        href="icon-192.png"
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Quicksand:wght@500;700&display=swap"
+        rel="stylesheet"
+    >
 
 
     <style>
@@ -28,47 +56,73 @@
         }
 
 
+        /*
+         * IMPORTANT:
+         * Give the HTML element the same background as the body.
+         * This prevents iPad from showing a white strip in the
+         * top safe-area/status-bar region.
+         */
+
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background: var(--magic-purple);
+        }
+
+
         * {
             box-sizing: border-box;
         }
 
 
         body {
-    font-family:
-        'Quicksand',
-        -apple-system,
-        BlinkMacSystemFont,
-        sans-serif;
+            font-family:
+                'Quicksand',
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
 
-    background:
-        radial-gradient(
-            circle at center,
-            #2d004d 0%,
-            #10002b 100%
-        );
+            background:
+                radial-gradient(
+                    circle at center,
+                    #2d004d 0%,
+                    #10002b 100%
+                );
 
-    margin: 0;
+            margin: 0;
 
-    padding: 0;
+            padding: 0;
 
-    min-height: 100vh;
+            width: 100%;
 
-    min-height: 100dvh;
+            min-height: 100vh;
 
-    color: var(--text);
+            min-height: 100dvh;
 
-    overflow: hidden;
+            color: var(--text);
 
-    position: relative;
+            overflow: hidden;
 
-    box-sizing: border-box;
+            position: relative;
 
-    -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
 
-    padding-bottom: calc(
-        75px + env(safe-area-inset-bottom)
-    );
-}
+            -webkit-tap-highlight-color: transparent;
+
+            /*
+             * Bottom space for navigation.
+             * Safe-area space is included separately.
+             */
+
+            padding-bottom:
+                calc(
+                    75px +
+                    env(safe-area-inset-bottom)
+                );
+        }
+
 
         #classTitle {
             font-family:
@@ -96,7 +150,16 @@
 
             user-select: none;
 
-            touch-action: none;
+            /*
+             * IMPORTANT:
+             * "none" disables browser touch gestures, including
+             * pinch-to-zoom.
+             *
+             * "manipulation" allows normal touch gestures while
+             * still keeping the interface responsive.
+             */
+
+            touch-action: manipulation;
 
             z-index: 5;
 
@@ -193,6 +256,12 @@
             pointer-events: auto !important;
 
             cursor: move !important;
+
+            /*
+             * When Layout Mode is active, the JavaScript
+             * drag handlers take control of the touch movement.
+             */
+            touch-action: none;
         }
 
 
@@ -472,7 +541,11 @@
             right: 0;
             bottom: 0;
 
-            height: calc(65px + env(safe-area-inset-bottom));
+            height:
+                calc(
+                    65px +
+                    env(safe-area-inset-bottom)
+                );
 
             background:
                 rgba(18, 18, 18, 0.96);
@@ -574,7 +647,11 @@
 
 
             #appNavigation {
-                height: 62px;
+                height:
+                    calc(
+                        62px +
+                        env(safe-area-inset-bottom)
+                    );
             }
 
 
@@ -593,12 +670,13 @@
 
 
     <script>
+
         if ('serviceWorker' in navigator) {
 
             window.addEventListener('load', () => {
 
                 navigator.serviceWorker
-                    .register('service-worker.js')
+                    .register('./service-worker.js')
                     .catch(err =>
                         console.warn(
                             'Service worker registration failed:',
@@ -609,6 +687,7 @@
             });
 
         }
+
     </script>
 
 </head>
@@ -921,8 +1000,8 @@
 
             <textarea
                 id="bulkInput"
-                placeholder="Enter names...">
-            </textarea>
+                placeholder="Enter names..."
+            ></textarea>
 
 
             <button
@@ -993,7 +1072,7 @@
 
         <a
             class="navItem active"
-            href="../namepicker/index.html">
+            href="../NamePicker/index.html">
 
             <span class="navIcon">
                 🎲
@@ -1008,7 +1087,7 @@
 
         <a
             class="navItem"
-            href="../emote/index.html">
+            href="../Emote/index.html">
 
             <span class="navIcon">
                 😀
@@ -1023,7 +1102,7 @@
 
         <a
             class="navItem"
-            href="../classpointsystem/index.html">
+            href="../ClassPointSystem/index.html">
 
             <span class="navIcon">
                 ⭐
