@@ -214,8 +214,11 @@
 
   .tab-btn .mini-hearts{
     display:flex;
-    gap:4px;
-    font-size:18px;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:3px;
+    font-size:15px;
+    max-width:100%;
   }
 
   .tab-btn[data-value="respect"]{
@@ -279,14 +282,21 @@
 
   .hearts-row{
     display:flex;
+    flex-wrap:wrap;
     gap:10px;
     margin-bottom:18px;
+    align-items:center;
   }
 
   .heart{
     width:52px;
     height:48px;
     transition:transform .15s;
+  }
+
+  .hearts-row.compact .heart{
+    width:42px;
+    height:39px;
   }
 
   .heart.pop{
@@ -795,6 +805,18 @@
     font-size:13px;
   }
 
+  .class-scope-banner{
+    display:inline-block;
+    background:#F3F1FF;
+    border:1.5px solid var(--line);
+    color:var(--ink);
+    font-size:12px;
+    font-weight:800;
+    padding:4px 10px;
+    border-radius:999px;
+    margin-bottom:12px;
+  }
+
   .adjust-grid{
     display:grid;
     grid-template-columns:1fr;
@@ -1068,7 +1090,7 @@
       </button>
 
       <button class="stab" data-s="points">
-        🧮 Daily Points
+        ❤️ Hearts & Points
       </button>
 
       <button class="stab" data-s="bonuslog">
@@ -1163,74 +1185,14 @@ function getSingaporeDateStr(){
   });
 }
 
-function makeDefaultClass(name){
-
-  const g1 = uid('g');
-  const g2 = uid('g');
-
-  return {
-    id:uid('c'),
-    name:name,
-
-    groups:[
-      {
-        id:g1,
-        name:'Group 1'
-      },
-      {
-        id:g2,
-        name:'Group 2'
-      }
-    ],
-
-    students:[
-      {
-        id:uid('s'),
-        name:'Ali',
-        groupId:g1
-      },
-      {
-        id:uid('s'),
-        name:'Bella',
-        groupId:g1
-      },
-      {
-        id:uid('s'),
-        name:'Chen',
-        groupId:g2
-      },
-      {
-        id:uid('s'),
-        name:'Divya',
-        groupId:g2
-      }
-    ],
-
-    hearts:{
-      respect:3,
-      responsibility:3,
-      resilience:3
-    },
-
-    classPoints:0,
-    log:[],
-    dailyHistory:[],
-    lastActiveDate:getSingaporeDateStr()
-  };
+function clampMaxHearts(val){
+  const n = Number(val);
+  if(Number.isNaN(n)) return 3;
+  return Math.max(3, Math.min(10, Math.round(n)));
 }
 
-const defaultClass = makeDefaultClass('Class 4A');
-
-let state = {
-
-  classes:{
-    [defaultClass.id]:defaultClass
-  },
-
-  currentClassId:defaultClass.id,
-
-  actions:{
-
+function makeDefaultActions(){
+  return {
     respect:[
       {
         id:uid('a'),
@@ -1281,15 +1243,11 @@ let state = {
         requiresStudent:true
       }
     ]
-  },
+  };
+}
 
-  pointsPerHeart:{
-    respect:10,
-    responsibility:10,
-    resilience:10
-  },
-
-  milestones:[
+function makeDefaultMilestones(){
+  return [
     {
       id:uid('m'),
       name:'Bronze Squad',
@@ -1308,18 +1266,207 @@ let state = {
       points:500,
       description:'Pizza party!'
     }
-  ],
+  ];
+}
+
+function cloneActionsWithNewIds(sourceActions){
+  const cloned = {};
+  Object.keys(VALUE_META).forEach(v=>{
+    const list = (sourceActions && Array.isArray(sourceActions[v]))
+      ? sourceActions[v]
+      : makeDefaultActions()[v];
+    cloned[v] = list.map(a=>({
+      id:uid('a'),
+      label:a.label,
+      delta:Number(a.delta) || 1,
+      requiresStudent:Boolean(a.requiresStudent)
+    }));
+  });
+  return cloned;
+}
+
+function cloneMilestonesWithNewIds(sourceMilestones){
+  const list = Array.isArray(sourceMilestones)
+    ? sourceMilestones
+    : makeDefaultMilestones();
+  return list.map(m=>({
+    id:uid('m'),
+    name:m.name,
+    points:Number(m.points) || 50,
+    description:m.description || ''
+  }));
+}
+
+function makeDefaultClass(name){
+
+  const g1 = uid('g');
+  const g2 = uid('g');
+
+  return {
+    id:uid('c'),
+    name:name,
+
+    groups:[
+      {
+        id:g1,
+        name:'Group 1'
+      },
+      {
+        id:g2,
+        name:'Group 2'
+      }
+    ],
+
+    students:[
+      {
+        id:uid('s'),
+        name:'Ali',
+        groupId:g1
+      },
+      {
+        id:uid('s'),
+        name:'Bella',
+        groupId:g1
+      },
+      {
+        id:uid('s'),
+        name:'Chen',
+        groupId:g2
+      },
+      {
+        id:uid('s'),
+        name:'Divya',
+        groupId:g2
+      }
+    ],
+
+    maxHearts:{
+      respect:3,
+      responsibility:3,
+      resilience:3
+    },
+
+    hearts:{
+      respect:3,
+      responsibility:3,
+      resilience:3
+    },
+
+    pointsPerHeart:{
+      respect:10,
+      responsibility:10,
+      resilience:10
+    },
+
+    actions:makeDefaultActions(),
+    milestones:makeDefaultMilestones(),
+
+    classPoints:0,
+    log:[],
+    dailyHistory:[],
+    lastActiveDate:getSingaporeDateStr()
+  };
+}
+
+const defaultClass = makeDefaultClass('Class 4A');
+
+let state = {
+
+  classes:{
+    [defaultClass.id]:defaultClass
+  },
+
+  currentClassId:defaultClass.id,
+
+  // Legacy global fallbacks kept only for migrating older saves
+  pointsPerHeart:{
+    respect:10,
+    responsibility:10,
+    resilience:10
+  },
 
   activeTab:'respect',
   settingsTab:'students'
 };
 
+function ensureClassSchema(c, legacyGlobalActions, legacyGlobalMilestones, legacyGlobalPointsPerHeart){
+  if(!c.groups) c.groups = [];
+  if(!c.students) c.students = [];
+  if(!c.log) c.log = [];
+  if(!c.dailyHistory) c.dailyHistory = [];
+  if(!c.lastActiveDate) c.lastActiveDate = getSingaporeDateStr();
+
+  if(!c.maxHearts || typeof c.maxHearts !== 'object'){
+    const fallbackMax = typeof c.maxHearts === 'number'
+      ? clampMaxHearts(c.maxHearts)
+      : 3;
+    c.maxHearts = {
+      respect:fallbackMax,
+      responsibility:fallbackMax,
+      resilience:fallbackMax
+    };
+  }else{
+    Object.keys(VALUE_META).forEach(v=>{
+      c.maxHearts[v] = clampMaxHearts(c.maxHearts[v]);
+    });
+  }
+
+  if(!c.hearts || typeof c.hearts !== 'object'){
+    c.hearts = {
+      respect:c.maxHearts.respect,
+      responsibility:c.maxHearts.responsibility,
+      resilience:c.maxHearts.resilience
+    };
+  }else{
+    Object.keys(VALUE_META).forEach(v=>{
+      const cur = typeof c.hearts[v] === 'number' ? c.hearts[v] : c.maxHearts[v];
+      c.hearts[v] = Math.max(0, Math.min(c.maxHearts[v], cur));
+    });
+  }
+
+  if(!c.pointsPerHeart || typeof c.pointsPerHeart !== 'object'){
+    c.pointsPerHeart = {
+      respect:(legacyGlobalPointsPerHeart && legacyGlobalPointsPerHeart.respect) ?? 10,
+      responsibility:(legacyGlobalPointsPerHeart && legacyGlobalPointsPerHeart.responsibility) ?? 10,
+      resilience:(legacyGlobalPointsPerHeart && legacyGlobalPointsPerHeart.resilience) ?? 10
+    };
+  }
+
+  // Migrate shared actions into per-class actions if missing
+  if(!c.actions || typeof c.actions !== 'object'){
+    c.actions = cloneActionsWithNewIds(legacyGlobalActions);
+  }else{
+    Object.keys(VALUE_META).forEach(v=>{
+      if(!Array.isArray(c.actions[v])){
+        c.actions[v] = cloneActionsWithNewIds(legacyGlobalActions)[v];
+      }
+    });
+  }
+
+  // Migrate shared milestones into per-class milestones if missing
+  if(!Array.isArray(c.milestones)){
+    c.milestones = cloneMilestonesWithNewIds(legacyGlobalMilestones);
+  }
+}
+
 const saved = localStorage.getItem('heart_squad_state');
 
 if(saved){
   try{
-    state = JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    if(parsed && parsed.classes && Object.keys(parsed.classes).length > 0){
+      state = parsed;
+    }
   }catch(e){}
+}
+
+// Ensure every class has its own independent actions, milestones, and maxHearts
+Object.values(state.classes).forEach(c=>{
+  ensureClassSchema(c, state.actions, state.milestones, state.pointsPerHeart);
+});
+
+if(!state.classes[state.currentClassId]){
+  state.currentClassId = Object.keys(state.classes)[0];
 }
 
 function saveState(){
@@ -1330,7 +1477,20 @@ function saveState(){
 }
 
 function curClass(){
-  return state.classes[state.currentClassId];
+  const c = state.classes[state.currentClassId];
+  ensureClassSchema(c, state.actions, state.milestones, state.pointsPerHeart);
+  return c;
+}
+
+function getMaxHearts(c, value){
+  return clampMaxHearts(c.maxHearts && c.maxHearts[value]);
+}
+
+function getPointsPerHeart(c, value){
+  if(c.pointsPerHeart && typeof c.pointsPerHeart[value] === 'number'){
+    return c.pointsPerHeart[value];
+  }
+  return (state.pointsPerHeart && state.pointsPerHeart[value]) ?? 10;
 }
 
 function checkMidnightReset(){
@@ -1338,6 +1498,8 @@ function checkMidnightReset(){
   const todayStr = getSingaporeDateStr();
 
   Object.values(state.classes).forEach(c=>{
+
+    ensureClassSchema(c, state.actions, state.milestones, state.pointsPerHeart);
 
     if(!c.lastActiveDate){
       c.lastActiveDate = todayStr;
@@ -1352,7 +1514,7 @@ function checkMidnightReset(){
 
         pts[v] =
           (c.hearts[v] || 0) *
-          (state.pointsPerHeart[v] || 10);
+          getPointsPerHeart(c, v);
 
         total += pts[v];
       });
@@ -1367,15 +1529,15 @@ function checkMidnightReset(){
       });
 
       c.hearts = {
-        respect:3,
-        responsibility:3,
-        resilience:3
+        respect:getMaxHearts(c, 'respect'),
+        responsibility:getMaxHearts(c, 'responsibility'),
+        resilience:getMaxHearts(c, 'resilience')
       };
 
       c.lastActiveDate = todayStr;
 
       toast(
-        `🌙 New Day Started (${todayStr})! Reset hearts to 3.`
+        `🌙 New Day Started (${todayStr})! Hearts reset for ${c.name}.`
       );
     }
   });
@@ -1396,7 +1558,7 @@ function toast(msg){
 
   toastTimer = setTimeout(
     ()=>t.classList.remove('show'),
-    2200
+    2400
   );
 }
 
@@ -1478,6 +1640,8 @@ function renderTabs(){
   Object.keys(VALUE_META).forEach(v=>{
 
     const meta = VALUE_META[v];
+    const maxH = getMaxHearts(c, v);
+    const indices = Array.from({length:maxH}, (_, i)=>i);
 
     const btn =
       document.createElement('button');
@@ -1495,9 +1659,9 @@ function renderTabs(){
 
       <span class="mini-hearts">
         ${
-          [0,1,2]
+          indices
           .map(i=>
-            `<span style="font-size:16px;">
+            `<span style="font-size:${maxH > 6 ? '13px' : '15px'};">
               ${i < c.hearts[v] ? '❤️':'🤍'}
             </span>`
           )
@@ -1525,18 +1689,20 @@ function renderValueCard(){
     document.getElementById('valueCard');
 
   const hearts = c.hearts[v];
+  const maxH = getMaxHearts(c, v);
+  const indices = Array.from({length:maxH}, (_, i)=>i);
 
   card.innerHTML = `
-    <h2>${meta.emoji} ${meta.label}</h2>
+    <h2>${meta.emoji} ${meta.label} <span style="font-size:15px; color:var(--ink-soft);">(${hearts}/${maxH})</span></h2>
 
     <div class="sub">
-      Hearts reset automatically every day at 12 AM
+      Hearts reset automatically to ${maxH} every day at 12 AM
       (Singapore time). Click an action below to modify hearts.
     </div>
 
-    <div class="hearts-row" id="heartsRow">
+    <div class="hearts-row ${maxH > 6 ? 'compact' : ''}" id="heartsRow">
       ${
-        [0,1,2]
+        indices
         .map(i=>
           `<span id="heart_${i}">
             ${heartSVG(i<hearts,colorHex(v))}
@@ -1552,7 +1718,7 @@ function renderValueCard(){
   const grid =
     document.getElementById('actionsGrid');
 
-  state.actions[v].forEach(action=>{
+  (c.actions[v] || []).forEach(action=>{
 
     const btn =
       document.createElement('button');
@@ -1804,6 +1970,7 @@ function applyChange(
 ){
 
   const c = curClass();
+  const maxH = getMaxHearts(c, value);
 
   const before =
     c.hearts[value];
@@ -1823,7 +1990,7 @@ function applyChange(
   after =
     Math.max(
       0,
-      Math.min(3,after)
+      Math.min(maxH,after)
     );
 
   c.hearts[value] = after;
@@ -2125,7 +2292,7 @@ function renderMilestones(){
     .forEach(f=>f.remove());
 
   const ms =
-    [...state.milestones]
+    [...(c.milestones || [])]
     .sort((a,b)=>a.points-b.points);
 
   const maxPts =
@@ -2289,9 +2456,14 @@ function renderSettings(){
   const c =
     curClass();
 
+  const otherClasses =
+    Object.values(state.classes).filter(x=>x.id !== c.id);
+
   if(state.settingsTab === 'students'){
 
     body.innerHTML = `
+
+      <div class="class-scope-banner">🏫 Editing: ${c.name}</div>
 
       <h4>Groups</h4>
 
@@ -2618,11 +2790,38 @@ function renderSettings(){
   else if(state.settingsTab === 'actions'){
 
     body.innerHTML = `
+      <div class="class-scope-banner">🏫 Independent Actions for: ${c.name}</div>
       <p class="empty-note">
-        Edit the buttons shown under each value tab.
+        Edit the buttons shown under each value tab for <b>${c.name}</b> only.
         Positive numbers add a heart, negative remove one.
       </p>
     `;
+
+    if(otherClasses.length > 0){
+      const copyRow = document.createElement('div');
+      copyRow.className = 'row';
+      copyRow.style.marginBottom = '14px';
+      copyRow.innerHTML = `
+        <select id="copyActionsFrom" class="form-control">
+          ${otherClasses.map(oc=>`<option value="${oc.id}">${oc.name}</option>`).join('')}
+        </select>
+        <button class="btn small" id="copyActionsBtn">📋 Copy Actions From Class</button>
+      `;
+      body.appendChild(copyRow);
+
+      copyRow.querySelector('#copyActionsBtn').onclick = ()=>{
+        const srcId = document.getElementById('copyActionsFrom').value;
+        const src = state.classes[srcId];
+        if(!src) return;
+        if(confirm(`Replace all actions in "${c.name}" with a copy from "${src.name}"?`)){
+          c.actions = cloneActionsWithNewIds(src.actions);
+          saveState();
+          renderAll();
+          renderSettings();
+          toast(`Copied actions from ${src.name}! 📋`);
+        }
+      };
+    }
 
     Object.keys(VALUE_META).forEach(v=>{
 
@@ -2698,7 +2897,7 @@ function renderSettings(){
           `#actList_${v}`
         );
 
-      state.actions[v].forEach(a=>{
+      (c.actions[v] || []).forEach(a=>{
 
         const div =
           document.createElement('div');
@@ -2752,12 +2951,13 @@ function renderSettings(){
 
         del.onclick = ()=>{
 
-          state.actions[v] =
-            state.actions[v].filter(
+          c.actions[v] =
+            c.actions[v].filter(
               x=>x.id !== a.id
             );
 
           saveState();
+          renderAll();
           renderSettings();
         };
 
@@ -2770,11 +2970,77 @@ function renderSettings(){
   else if(state.settingsTab === 'points'){
 
     body.innerHTML = `
+      <div class="class-scope-banner">🏫 Settings for: ${c.name}</div>
+
+      <h4>❤️ Maximum Hearts per Value (3 to 10)</h4>
+      <p class="empty-note">
+        Choose how many hearts (3–10) each value starts with and resets to at midnight for <b>${c.name}</b>.
+      </p>
+      <div id="maxHeartsSettings"></div>
+
+      <hr style="
+        border:none;
+        border-top:1px solid var(--line);
+        margin:16px 0;
+      ">
+
+      <h4>🧮 Daily Points Conversion</h4>
       <p class="empty-note">
         Set how many class points each remaining heart
         is worth at the end of each day.
       </p>
+      <div id="pointsPerHeartSettings"></div>
     `;
+
+    const maxContainer = document.getElementById('maxHeartsSettings');
+
+    Object.keys(VALUE_META).forEach(v=>{
+      const meta = VALUE_META[v];
+      const curMax = getMaxHearts(c, v);
+
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div style="width:160px; font-weight:700;">
+          ${meta.emoji} ${meta.label}
+        </div>
+        <select id="maxH_${v}" class="form-control" style="width:120px;">
+          ${[3,4,5,6,7,8,9,10].map(n=>
+            `<option value="${n}" ${n === curMax ? 'selected' : ''}>${n} hearts</option>`
+          ).join('')}
+        </select>
+        <button class="btn small" id="fillMax_${v}">Refill to ${curMax}</button>
+      `;
+
+      maxContainer.appendChild(row);
+
+      row.querySelector(`#maxH_${v}`).onchange = (e)=>{
+        const newMax = clampMaxHearts(e.target.value);
+        const oldMax = getMaxHearts(c, v);
+        c.maxHearts[v] = newMax;
+
+        // If hearts were full at the old maximum, scale up to new maximum; otherwise clamp
+        if(c.hearts[v] === oldMax){
+          c.hearts[v] = newMax;
+        }else{
+          c.hearts[v] = Math.min(newMax, c.hearts[v]);
+        }
+
+        saveState();
+        renderAll();
+        renderSettings();
+        toast(`${meta.label} max hearts set to ${newMax} ❤️`);
+      };
+
+      row.querySelector(`#fillMax_${v}`).onclick = ()=>{
+        c.hearts[v] = getMaxHearts(c, v);
+        saveState();
+        renderAll();
+        toast(`${meta.label} hearts refilled to ${c.hearts[v]}! ❤️`);
+      };
+    });
+
+    const pphContainer = document.getElementById('pointsPerHeartSettings');
 
     Object.keys(VALUE_META).forEach(v=>{
 
@@ -2788,14 +3054,14 @@ function renderSettings(){
         'row';
 
       row.innerHTML = `
-        <div style="width:160px;">
+        <div style="width:160px; font-weight:700;">
           ${meta.emoji} ${meta.label}
         </div>
 
         <input
           type="number"
           min="0"
-          value="${state.pointsPerHeart[v]}"
+          value="${getPointsPerHeart(c, v)}"
           id="ppH_${v}"
           style="width:100px;"
         >
@@ -2805,13 +3071,13 @@ function renderSettings(){
         </span>
       `;
 
-      body.appendChild(row);
+      pphContainer.appendChild(row);
 
       row.querySelector(
         `#ppH_${v}`
       ).onchange = (e)=>{
 
-        state.pointsPerHeart[v] =
+        c.pointsPerHeart[v] =
           Number(e.target.value) || 0;
 
         saveState();
@@ -2884,6 +3150,7 @@ function renderSettings(){
         .reverse();
 
     body.innerHTML = `
+      <div class="class-scope-banner">🏫 Bonus Log for: ${c.name}</div>
       <p class="empty-note">
         History of bonus points awarded for positive behaviours.
         Removing an entry also deducts the points from the class total.
@@ -2979,6 +3246,8 @@ function renderSettings(){
   else if(state.settingsTab === 'milestones'){
 
     body.innerHTML = `
+      <div class="class-scope-banner">🏫 Independent Rewards / Milestones for: ${c.name}</div>
+      <div id="msCopyWrap"></div>
       <div id="msList"></div>
 
       <hr style="
@@ -2987,7 +3256,7 @@ function renderSettings(){
         margin:14px 0;
       ">
 
-      <h4>Add New Reward</h4>
+      <h4>Add New Reward for ${c.name}</h4>
 
       <div class="row">
 
@@ -3021,12 +3290,36 @@ function renderSettings(){
       </div>
     `;
 
+    if(otherClasses.length > 0){
+      const copyWrap = document.getElementById('msCopyWrap');
+      copyWrap.innerHTML = `
+        <div class="row" style="margin-bottom:12px;">
+          <select id="copyMsFrom" class="form-control">
+            ${otherClasses.map(oc=>`<option value="${oc.id}">${oc.name}</option>`).join('')}
+          </select>
+          <button class="btn small" id="copyMsBtn">📋 Copy Milestones From Class</button>
+        </div>
+      `;
+      copyWrap.querySelector('#copyMsBtn').onclick = ()=>{
+        const srcId = document.getElementById('copyMsFrom').value;
+        const src = state.classes[srcId];
+        if(!src) return;
+        if(confirm(`Replace all milestones in "${c.name}" with a copy from "${src.name}"?`)){
+          c.milestones = cloneMilestonesWithNewIds(src.milestones);
+          saveState();
+          renderMilestones();
+          renderSettings();
+          toast(`Copied milestones from ${src.name}! 🏆`);
+        }
+      };
+    }
+
     const list =
       document.getElementById(
         'msList'
       );
 
-    state.milestones
+    (c.milestones || [])
       .sort(
         (a,b)=>a.points-b.points
       )
@@ -3080,8 +3373,8 @@ function renderSettings(){
 
         del.onclick = ()=>{
 
-          state.milestones =
-            state.milestones.filter(
+          c.milestones =
+            c.milestones.filter(
               x=>x.id !== m.id
             );
 
@@ -3140,7 +3433,7 @@ function renderSettings(){
 
       if(name && points > 0){
 
-        state.milestones.push({
+        c.milestones.push({
           id:uid('m'),
           name,
           points,
@@ -3164,6 +3457,8 @@ function renderSettings(){
   else if(state.settingsTab === 'calendar'){
 
     body.innerHTML = `
+
+      <div class="class-scope-banner">🏫 Calendar for: ${c.name}</div>
 
       <div class="calendar-header">
 
@@ -3324,6 +3619,8 @@ function renderSettings(){
     }
 
     body.innerHTML = `
+
+      <div class="class-scope-banner">🏫 Contribution Table for: ${c.name}</div>
 
       <div style="
         display:flex;
@@ -3507,18 +3804,28 @@ function renderSettings(){
 
     body.innerHTML = `
 
-      <p>
-        Export all classes, actions,
-        points settings and milestones
-        as a JSON file.
+      <div class="class-scope-banner">🏫 Active Class: ${c.name}</div>
+
+      <h4>Export This Class (${c.name})</h4>
+      <p class="empty-note">
+        Downloads students, groups, hearts, actions, milestones, points, and history for <b>${c.name}</b> only.
       </p>
 
-      <button
-        class="btn primary"
-        id="exportBtn"
-      >
-        ⬇️ Export Data
-      </button>
+      <div class="row">
+        <button
+          class="btn primary"
+          id="exportClassBtn"
+        >
+          ⬇️ Export "${c.name}" (JSON)
+        </button>
+
+        <button
+          class="btn"
+          id="exportAllBtn"
+        >
+          📦 Export Full Backup (All Classes)
+        </button>
+      </div>
 
       <hr style="
         border:none;
@@ -3526,9 +3833,20 @@ function renderSettings(){
         margin:16px 0;
       ">
 
-      <p>
-        Import a previously exported JSON file.
+      <h4>Import Data</h4>
+      <p class="empty-note">
+        Import a single-class file (adds as a new class or updates <b>${c.name}</b>) or restore a full backup.
       </p>
+
+      <div class="row">
+        <label style="font-size:13px; font-weight:700;">
+          Single-class import mode:
+        </label>
+        <select id="importClassMode" class="form-control">
+          <option value="new">Add as a new class</option>
+          <option value="replace">Overwrite current class (${c.name})</option>
+        </select>
+      </div>
 
       <input
         type="file"
@@ -3537,45 +3855,51 @@ function renderSettings(){
       >
     `;
 
+    function downloadJSON(obj, filename){
+      const blob = new Blob(
+        [JSON.stringify(obj, null, 2)],
+        {type:'application/json'}
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
     document.getElementById(
-      'exportBtn'
+      'exportClassBtn'
     ).onclick = ()=>{
 
-      const blob =
-        new Blob(
-          [
-            JSON.stringify(
-              state,
-              null,
-              2
-            )
-          ],
-          {
-            type:'application/json'
-          }
-        );
+      const safeName = c.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') || 'class';
 
-      const url =
-        URL.createObjectURL(blob);
+      const payload = {
+        format:'heart-squad-class-v1',
+        exportedAt:new Date().toISOString(),
+        classData:JSON.parse(JSON.stringify(c))
+      };
 
-      const a =
-        document.createElement('a');
-
-      a.href = url;
-
-      a.download =
-        'heart-squad-data.json';
-
-      document.body.appendChild(a);
-
-      a.click();
-
-      a.remove();
-
-      URL.revokeObjectURL(url);
+      downloadJSON(payload, `heart-squad-${safeName}.json`);
 
       toast(
-        'Data exported! 💾'
+        `Exported "${c.name}"! 💾`
+      );
+    };
+
+    document.getElementById(
+      'exportAllBtn'
+    ).onclick = ()=>{
+
+      downloadJSON(state, 'heart-squad-all-classes.json');
+
+      toast(
+        'Full backup exported! 📦'
       );
     };
 
@@ -3600,10 +3924,40 @@ function renderSettings(){
               reader.result
             );
 
-          if(
+          // 1. Single-class export file
+          if(data && data.format === 'heart-squad-class-v1' && data.classData){
+
+            const importedClass = data.classData;
+            ensureClassSchema(importedClass, state.actions, state.milestones, state.pointsPerHeart);
+
+            const mode = document.getElementById('importClassMode').value;
+
+            if(mode === 'replace'){
+              importedClass.id = c.id;
+              state.classes[c.id] = importedClass;
+              toast(`Updated "${importedClass.name}"! 🎉`);
+            }else{
+              importedClass.id = uid('c');
+              state.classes[importedClass.id] = importedClass;
+              state.currentClassId = importedClass.id;
+              toast(`Imported class "${importedClass.name}"! 🎉`);
+            }
+
+            saveState();
+            renderAll();
+            renderSettings();
+          }
+
+          // 2. Full backup file
+          else if(
+            data &&
             data.classes &&
             data.currentClassId
           ){
+
+            Object.values(data.classes).forEach(cl=>{
+              ensureClassSchema(cl, data.actions, data.milestones, data.pointsPerHeart);
+            });
 
             state = data;
 
@@ -3613,7 +3967,7 @@ function renderSettings(){
             renderSettings();
 
             toast(
-              'Data imported successfully! 🎉'
+              'Full backup imported successfully! 🎉'
             );
 
           }else{
@@ -3638,8 +3992,10 @@ function renderSettings(){
 
 function editMilestone(id){
 
+  const c = curClass();
+
   const m =
-    state.milestones.find(
+    (c.milestones || []).find(
       x=>x.id === id
     );
 
@@ -4125,6 +4481,8 @@ document.getElementById(
 
 function addAction(v){
 
+  const c = curClass();
+
   const label =
     document.getElementById(
       `newActLabel_${v}`
@@ -4144,7 +4502,7 @@ function addAction(v){
 
   if(label){
 
-    state.actions[v].push({
+    c.actions[v].push({
       id:uid('a'),
       label,
       delta,
@@ -4152,6 +4510,7 @@ function addAction(v){
     });
 
     saveState();
+    renderAll();
     renderSettings();
 
   }else{
